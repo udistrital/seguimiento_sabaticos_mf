@@ -1,0 +1,59 @@
+{
+  "name": "seguimiento-sabatico-mf",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:seguimiento-sabatico-mf": "node dist/seguimiento-sabatico-mf/server/server.mjs",
+    "build:single-spa:seguimiento-sabatico-mf": "ng build seguimiento-sabatico-mf --configuration production",
+    "serve:single-spa:seguimiento-sabatico-mf": "ng s --project seguimiento-sabatico-mf --disable-host-check --port 4222 --live-reload false"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/platform-server": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "@angular/ssr": "^20.3.24",
+    "express": "^5.1.0",
+    "rxjs": "~7.8.0",
+    "single-spa": ">=4.0.0",
+    "single-spa-angular": "^20.1.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-builders/custom-webpack": "20.0.0",
+    "@angular/build": "^20.3.24",
+    "@angular/cli": "^20.3.24",
+    "@angular/compiler-cli": "^20.3.0",
+    "@types/express": "^5.0.1",
+    "@types/jasmine": "~5.1.0",
+    "@types/node": "^20.17.19",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "style-loader": "^3.3.1",
+    "typescript": "~5.9.2"
+  }
+}
