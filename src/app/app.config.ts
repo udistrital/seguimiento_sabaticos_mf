@@ -6,14 +6,17 @@ import { TranslateModule } from '@ngx-translate/core';
 import { getSingleSpaExtraProviders } from 'single-spa-angular';
 
 import { routes } from './app.routes';
+import { APP_BASE_HREF } from '@angular/common';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    { provide: APP_BASE_HREF, useValue: '/seguimiento-sabaticos/' },
     provideAnimationsAsync(),
     provideHttpClient(withFetch()),
     TranslateModule.forRoot().providers!,
-    getSingleSpaExtraProviders()
+    getSingleSpaExtraProviders(),
+    provideHttpClient(withFetch())
   ]
 };
