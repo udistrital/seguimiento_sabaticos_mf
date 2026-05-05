@@ -1,0 +1,31 @@
+
+{
+  "HISTORIAL_SABATICOS": {
+    "cargandoHistorial": "Cargando historial de sabáticos...",
+    "sinHistorial": "No hay sabáticos registrados",
+    "title": "Sabáticos",
+    "description": "Lista de sabaticos registrados en el sistema",
+    "tableAriaLabel": "Tabla de historial de sabáticos",
+    "columns": {
+      "id": "ID",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFinal": "Fecha final",
+      "estadoSabatico": "Estado sabático",
+      "estadoSolicitud": "Estado de la solicitud",
+      "gestion": "Gestión"
+    },
+    "roleInfo": {
+      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión."
+    },
+    "filters": {
+      "id": "Filtrar por ID",
+      "fechaInicio": "Filtrar por fecha de inicio",
+      "fechaFinal": "Filtrar por fecha final"
+    },
+    "tableSection": {
+      "title": "Historial Sabaticos",
+      "subtitle": "Sección para visualizar las sabaticos en curso"
+    }
+  }
+}
+

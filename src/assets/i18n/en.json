@@ -1,0 +1,25 @@
+{
+  "HISTORIAL_SABATICOS": {
+    "title": "Sabbaticals",
+    "description": "List of sabbaticals registered in the system",
+    "tableAriaLabel": "Sabbaticals history table",
+    "columns": {
+      "id": "ID",
+      "fechaInicio": "Start date",
+      "fechaFinal": "End date",
+      "estadoSabatico": "Sabbatical status",
+      "estadoSolicitud": "Request status",
+      "gestion": "Actions"
+    },
+    "roleInfo": {
+      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and submitting them for review."
+    },
+    "filters": {
+      "id": "Filter by ID"
+    },
+    "tableSection": {
+      "title": "Sabbaticals History",
+      "subtitle": "Section to view ongoing sabbaticals"
+    }
+  }
+}
