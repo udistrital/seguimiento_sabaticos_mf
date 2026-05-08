@@ -17,6 +17,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { TercerosService } from '../../services/terceros.service';
+import { RouterModule } from '@angular/router';
 
 interface HistorialEstadoSabaticos {
   id: string;
@@ -37,7 +38,7 @@ type FilterColumn = 'id' | 'fechaInicio' | 'fechaFinal' | 'estadoSabatico';
 @Component({
   selector: 'historial-sabaticos',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, MatSpinner, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, FormsModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, MatSpinner, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, FormsModule, RouterModule],
   templateUrl: './historial-sabaticos.html',
   styleUrl: './historial-sabaticos.scss',
 })
