@@ -1,0 +1,277 @@
+<mat-card class="editar-sabatico">
+
+  <mat-card-header class="editar-sabatico__header">
+    <div class="editar-sabatico__header-content">
+
+      <div class="editar-sabatico__titles">
+        <mat-card-title>
+          {{ 'HISTORIAL_SABATICOS.edit.title' | translate }}
+        </mat-card-title>
+
+        <mat-card-subtitle>
+          {{ 'HISTORIAL_SABATICOS.edit.subtitle' | translate }}
+        </mat-card-subtitle>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="editar-sabatico__back"
+        [routerLink]="['']">
+
+        <mat-icon>arrow_back</mat-icon>
+
+        {{ 'GLOBAL.regresar' | translate }}
+      </button>
+
+    </div>
+  </mat-card-header>
+
+  <blockquote class="editar-sabatico__role-info">
+    <p class="historial-sabaticos__role-info-text">
+      {{ roleInfoMessageKey | translate }}
+    </p>
+  </blockquote>
+
+  <mat-card-content>
+
+    <!-- RESUMEN -->
+    <div class="editar-sabatico__summary">
+
+      <div class="editar-sabatico__summary-grid">
+
+        <div class="editar-sabatico__summary-item">
+          <span class="editar-sabatico__summary-label">
+            {{ 'HISTORIAL_SABATICOS.edit.columns.id' | translate }}
+          </span>
+
+          <span class="editar-sabatico__summary-value">
+            hola
+          </span>
+        </div>
+
+        <div class="editar-sabatico__summary-item">
+          <span class="editar-sabatico__summary-label">
+            {{ 'HISTORIAL_SABATICOS.edit.columns.fecha_inicio' | translate }}
+          </span>
+
+          <span class="editar-sabatico__summary-value">
+            hola
+          </span>
+        </div>
+
+        <div class="editar-sabatico__summary-item">
+          <span class="editar-sabatico__summary-label">
+            {{ 'HISTORIAL_SABATICOS.edit.columns.fecha_final' | translate }}
+          </span>
+
+          <span class="editar-sabatico__summary-value">
+            hola
+          </span>
+        </div>
+
+        <div class="editar-sabatico__summary-item">
+          <span class="editar-sabatico__summary-label">
+            {{ 'HISTORIAL_SABATICOS.edit.columns.estado' | translate }}
+          </span>
+
+          <span class="editar-sabatico__summary-value">
+            hola
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <form
+      class="editar-sabatico__form"
+      [formGroup]="form">
+
+      <div class="editar-sabatico__section">
+
+        <h3 class="editar-sabatico__section-title">
+          {{ 'HISTORIAL_SABATICOS.edit.plan_trabajo' | translate }}
+        </h3>
+
+        <div class="editar-sabatico__grid">
+
+          <mat-form-field
+            appearance="outline"
+            class="editar-sabatico__field">
+
+            <mat-label>
+              {{ 'HISTORIAL_SABATICOS.edit.descripcion_plan_trabajo' | translate }}
+            </mat-label>
+
+            <input
+              matInput
+              formControlName="descripcion_plan_trabajo" />
+
+          </mat-form-field>
+
+        </div>
+
+      </div>
+
+    </form>
+
+    <!-- DOCUMENTOS -->
+    <div class="editar-sabatico__section">
+
+      <h3 class="editar-sabatico__section-title">
+        {{ 'HISTORIAL_SABATICOS.edit.sectionDocumentos' | translate }}
+      </h3>
+
+      <p class="editar-sabatico__documento-help">
+        {{ 'HISTORIAL_SABATICOS.edit.documentos_pdf' | translate }}
+      </p>
+
+      <!-- SELECTOR DOCUMENTOS -->
+      <div
+        class="editar-sabatico__documento-selector"
+        *ngIf="!canAprobarDocumentos">
+
+        <!-- LOADING -->
+        <div
+          *ngIf="cargandoDocumentos"
+          class="editar-sabatico__loading">
+
+          <mat-spinner diameter="32"></mat-spinner>
+
+          <span>
+            {{ 'HISTORIAL_SABATICOS.edit.nombre_documento' | translate }}
+          </span>
+
+        </div>
+
+        <!-- INPUT -->
+        <mat-form-field
+          *ngIf="!cargandoDocumentos"
+          appearance="outline"
+          class="editar-sabatico__field">
+
+          <mat-label>
+            {{ 'HISTORIAL_SABATICOS.edit.nombre_documento' | translate }}
+          </mat-label>
+
+          <input
+            matInput
+            [(ngModel)]="nombreDocumento"
+            [disabled]="!canEditarFormularioPrincipal"
+            placeholder="{{ 'HISTORIAL_SABATICOS.edit.nombre_documento' | translate }}" />
+
+        </mat-form-field>
+
+        <!-- BOTON AGREGAR -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          class="editar-sabatico__documento-add"
+          (click)="onAgregarDocumento()">
+
+          {{ 'GLOBAL.agregar' | translate }}
+
+        </button>
+
+      </div>
+
+      <!-- LISTA DOCUMENTOS -->
+      <div class="editar-sabatico__documentos">
+
+        <div
+          class="editar-sabatico__documento"
+          *ngFor="let documento of documentosSeleccionadosDetalle; trackBy: trackDocumento">
+
+          <!-- INFO -->
+          <div class="editar-sabatico__documento-info">
+
+            <span class="editar-sabatico__documento-title">
+              {{ documento.label }}
+            </span>
+
+            <span class="editar-sabatico__documento-file">
+              {{ documento.archivo?.name || 'Sin archivo cargado' }}
+            </span>
+
+          </div>
+
+          <!-- ACCIONES -->
+          <div class="editar-sabatico__documento-actions">
+
+            <ng-container *ngIf="!documento.archivo; else accionesArchivo">
+
+              <!-- INPUT FILE -->
+              <input
+                #fileInput
+                type="file"
+                accept=".pdf,application/pdf"
+                hidden
+                (change)="onDocumentoChange(documento.key, $event)" />
+
+              <!-- CARGAR -->
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="fileInput.click()">
+
+                {{ 'HISTORIAL_SABATICOS.edit.cargar_pdf' | translate }}
+
+              </button>
+
+              <!-- ELIMINAR -->
+              <button
+                mat-icon-button
+                type="button"
+                (click)="onEliminarDocumento(documento.key)">
+
+                <mat-icon>delete</mat-icon>
+
+              </button>
+
+            </ng-container>
+
+            <!-- ACCIONES ARCHIVO -->
+            <ng-template #accionesArchivo>
+
+              <!-- PREVISUALIZAR -->
+              <button
+                mat-icon-button
+                type="button"
+                (click)="onPrevisualizarDocumento(documento.key)">
+
+                <mat-icon>visibility</mat-icon>
+
+              </button>
+
+              <!-- ELIMINAR -->
+              <button
+                mat-icon-button
+                type="button"
+                (click)="onEliminarDocumento(documento.key)">
+
+                <mat-icon>delete</mat-icon>
+
+              </button>
+
+            </ng-template>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="editar-sabatico__actions" *ngIf="!isReadOnly">
+      <button
+        mat-raised-button color="primary" type="button" class="editar-sabatico__send">
+        {{ 'HISTORIAL_SABATICOS.edit.enviar_revision' | translate }}
+        </button>
+    </div>
+
+  </mat-card-content>
+
+</mat-card>

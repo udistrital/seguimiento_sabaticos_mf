@@ -1,0 +1,64 @@
+{
+  "GLOBAL": {
+    "regresar": "Back",
+    "agregar": "Add"
+  },
+  "HISTORIAL_SABATICOS": {
+    "cargandoHistorial": "Loading sabbatical history...",
+    "sinHistorial": "No sabbaticals registered",
+    "title": "Sabbaticals",
+    "description": "History of sabbaticals registered in the system",
+    "tableAriaLabel": "Sabbatical history table",
+
+    "columns": {
+      "id": "ID",
+      "fechaInicio": "Start date",
+      "fechaFinal": "End date",
+      "estadoSabatico": "Sabbatical status",
+      "estadoSolicitud": "Request status",
+      "gestion": "Management"
+    },
+
+    "roleInfo": {
+      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review."
+    },
+
+    "filters": {
+      "id": "Filter by ID",
+      "fechaInicio": "Filter by start date",
+      "fechaFinal": "Filter by end date"
+    },
+
+    "tableSection": {
+      "title": "Sabbatical History",
+      "subtitle": "Section to view current sabbaticals"
+    },
+
+    "edit": {
+      "title": "Work Plan Upload Form",
+      "subtitle": "Form to upload your sabbatical work plan",
+
+      "plan_trabajo": "Work Plan",
+      "descripcion_plan_trabajo": "Work plan description",
+
+      "sectionDocumentos": "Supporting Documents",
+      "documentos_pdf": "Only PDF files are allowed.",
+      "nombre_documento": "Enter the document name",
+
+      "enviar_revision": "Send for review",
+      "cargar_pdf": "Upload PDF",
+
+      "roleInfo": {
+        "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan and sending it for review.",
+        "secretaria": "In this module, the secretary will be able to review sabbatical work plans, approve or reject them, and notify the teacher about the decision made."
+      },
+
+      "columns": {
+        "id": "ID",
+        "fecha_inicio": "Start date",
+        "fecha_final": "End date",
+        "estado": "Status"
+      }
+    }
+  }
+}

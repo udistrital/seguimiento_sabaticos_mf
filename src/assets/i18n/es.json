@@ -1,0 +1,56 @@
+
+{ "GLOBAL": {
+    "regresar": "Regresar",
+    "agregar": "Agregar"
+  },
+  "HISTORIAL_SABATICOS": {
+    "cargandoHistorial": "Cargando historial de sabáticos...",
+    "sinHistorial": "No hay sabáticos registrados",
+    "title": "Sabáticos",
+    "description": "Historial de sabáticos registrados en el sistema",
+    "tableAriaLabel": "Tabla de historial de sabáticos",
+    "columns": {
+      "id": "ID",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFinal": "Fecha final",
+      "estadoSabatico": "Estado sabático",
+      "estadoSolicitud": "Estado de la solicitud",
+      "gestion": "Gestión"
+    },
+    "roleInfo": {
+      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión."
+    },
+    "filters": {
+      "id": "Filtrar por ID",
+      "fechaInicio": "Filtrar por fecha de inicio",
+      "fechaFinal": "Filtrar por fecha final"
+    },
+    "tableSection": {
+      "title": "Historial Sabaticos",
+      "subtitle": "Sección para visualizar las sabaticos en curso"
+    },
+    "edit": {
+      "title": "Formulario de carga de plan de trabajo",
+      "subtitle": "formulario para cargar su plan de trabajo para el sabático", 
+      "plan_trabajo": "Plan de trabajo",
+      "descripcion_plan_trabajo": "Descripción del plan de trabajo",
+      "sectionDocumentos": "Documentos de soporte",
+      "documentos_pdf": "Solo se permiten archivos en formato PDF.",
+      "nombre_documento": "Ingresa el nombre del documento",
+      "enviar_revision": "Enviar a revisión",
+      "cargar_pdf": "Cargar PDF",
+      "roleInfo": {
+        "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo y enviándolas a revisión.",
+        "secretaria": "En este módulo la secretaria podrá revisar los planes de trabajo de un sabático, aprobando o rechazando el plan de trabajo y notificando al docente sobre la decisión tomada."
+      },
+      "columns": {
+        "id": "ID",
+        "fecha_inicio": "Fecha de inicio",
+        "fecha_final": "Fecha final",
+        "estado": "Estado"
+      }
+      
+    }
+  }
+}
+

@@ -1,0 +1,8 @@
+<div class="app-loader" *ngIf="isLoading$ | async" role="status" aria-live="polite">
+  <div class="app-loader__panel">
+    <mat-spinner diameter="80" color="primary"></mat-spinner>
+    <span class="app-loader__text">
+      {{ 'GLOBAL.cargando' | translate }}
+    </span>
+  </div>
+</div>
