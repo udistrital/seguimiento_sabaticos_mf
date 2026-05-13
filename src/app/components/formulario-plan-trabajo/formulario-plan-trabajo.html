@@ -46,7 +46,7 @@
           </span>
 
           <span class="editar-sabatico__summary-value">
-            hola
+            {{ sabaticoData?.SabaticoId.Id || 'N/A' }}
           </span>
         </div>
 
@@ -56,7 +56,7 @@
           </span>
 
           <span class="editar-sabatico__summary-value">
-            hola
+            {{ formatApiDate(sabaticoData?.SabaticoId.FechaInicio) || 'N/A' }}
           </span>
         </div>
 
@@ -66,7 +66,7 @@
           </span>
 
           <span class="editar-sabatico__summary-value">
-            hola
+            {{ formatApiDate(sabaticoData?.SabaticoId.FechaFin) || 'N/A' }}
           </span>
         </div>
 
@@ -76,7 +76,7 @@
           </span>
 
           <span class="editar-sabatico__summary-value">
-            hola
+            {{ sabaticoData?.EstadoSabaticoId.NombreEstado || 'N/A' }}
           </span>
         </div>
 
@@ -130,7 +130,7 @@
       <!-- SELECTOR DOCUMENTOS -->
       <div
         class="editar-sabatico__documento-selector"
-        *ngIf="!canAprobarDocumentos">
+        *ngIf="canEditarPlanTrabajo">
 
         <!-- LOADING -->
         <div
@@ -158,7 +158,6 @@
           <input
             matInput
             [(ngModel)]="nombreDocumento"
-            [disabled]="!canEditarFormularioPrincipal"
             placeholder="{{ 'HISTORIAL_SABATICOS.edit.nombre_documento' | translate }}" />
 
         </mat-form-field>
@@ -212,7 +211,7 @@
 
               <!-- CARGAR -->
               <button
-                mat-stroked-button
+                mat-raised-button color="primary" type="button" class="editar-sabatico__send"
                 type="button"
                 (click)="fileInput.click()">
 
@@ -265,8 +264,8 @@
 
     </div>
 
-    <div class="editar-sabatico__actions" *ngIf="!isReadOnly">
-      <button
+    <div class="editar-sabatico__actions" >
+      <button *ngIf="canEnviarRevision"
         mat-raised-button color="primary" type="button" class="editar-sabatico__send">
         {{ 'HISTORIAL_SABATICOS.edit.enviar_revision' | translate }}
         </button>

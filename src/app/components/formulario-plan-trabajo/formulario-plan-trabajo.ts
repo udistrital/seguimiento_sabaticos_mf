@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,9 +7,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ConfiguracionService } from '../../services/configuracion.service';
+import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface DocumentoDetalle {
   key: string;
@@ -33,7 +37,7 @@ interface DocumentoDetalle {
     MatProgressSpinnerModule,
     CommonModule,
     FormsModule,
-    
+    MatButtonModule,
   ],
   templateUrl: './formulario-plan-trabajo.html',
   styleUrl: './formulario-plan-trabajo.scss',
@@ -42,16 +46,15 @@ export class FormularioPlanTrabajo {
 
    rol!: string;
    form: FormGroup;
-   isReadOnly = false;
    cargandoDocumentos = false;
    documentosSeleccionados: string[] = [];
    documentosSeleccionadosDetalle: DocumentoDetalle[] = [];
-    nombreDocumento = '';
-
-
-  get isSecretariaGeneral(): boolean {
-    return this.rol === 'SECRETARIA_GENERAL';
-  }
+   nombreDocumento = '';
+   permisos: any[] = [];
+   terceroId = '';
+   sabaticoId = '';
+   sabaticoData: any = null;
+   spinnerVisible = false;
 
   get isDocente(): boolean {
     return this.rol === 'DOCENTE';
@@ -62,10 +65,6 @@ export class FormularioPlanTrabajo {
   }
 
   get roleInfoMessageKey(): string {
-    if (this.isSecretariaGeneral) {
-      return 'HISTORIAL_SABATICOS.roleInfo.secretariaGeneral';
-    }
-
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SABATICOS.roleInfo.secretariaAcademica';
     }
@@ -73,17 +72,16 @@ export class FormularioPlanTrabajo {
     return 'HISTORIAL_SABATICOS.edit.roleInfo.docente';
   }
 
-  get canEditarFormularioPrincipal(): boolean {
-    return !this.isReadOnly && this.rol !== 'SECRETARIA_GENERAL' && this.rol !== 'SECRETARIA_ACADEMICA';
+  get canEditarPlanTrabajo(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Plan_Trabajo');
   }
 
-  get canAprobarDocumentos(): boolean {
-    return !this.isReadOnly
-      && (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL');
+  get canEnviarRevision(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Revision_Plan_Trabajo');
   }
 
   onAgregarDocumento(): void {
-    if (!this.canEditarFormularioPrincipal) {
+    if (!this.canEditarPlanTrabajo) {
       return;
     }
 
@@ -155,16 +153,25 @@ export class FormularioPlanTrabajo {
 
   constructor(
     private fb: FormBuilder,
+    private destroyRef: DestroyRef,
     private readonly translate: TranslateService,
+    private readonly configuracionService: ConfiguracionService,
+    private sabaticosCrudService: SabaticosCrudService,
   ) {
     this.translate.setDefaultLang('es');
     this.translate.use('es');
-    this.form = this.buildForm();
 
-    if (this.isDocente){
-      this.cargandoDocumentos = true;
-      this.isReadOnly = true;
-    }
+    this.form = this.buildForm();
+    this.rol = localStorage.getItem('rol') || '';
+    this.terceroId =localStorage.getItem('tercero') || '';
+    this.sabaticoId = localStorage.getItem('SabaticoId') || '';
+
+    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
+    .subscribe((response: any) => {
+      this.permisos = response;
+      this.togglePlanTrabajo();
+      this.loadSabatico(this.sabaticoId);
+    });
   }
 
   ngOnInit(): void {
@@ -178,4 +185,50 @@ export class FormularioPlanTrabajo {
     });
   }
 
+  private loadSabatico(id: string): void {
+    this.spinnerVisible = true;
+    const endpoint = `historial_estado_sabatico?query=TerceroId:${this.terceroId},SabaticoId.Id:${id},Activo:True`;
+
+    this.sabaticosCrudService.get(endpoint)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe((response: any) => {
+      const data = response?.Data[0] ?? response ?? [];
+      this.sabaticoData = data;
+
+      this.form.patchValue({
+        descripcion_plan_trabajo:
+          this.sabaticoData?.Justificacion || ''
+      });
+    });
+    this.spinnerVisible = false;
+  }
+
+  private togglePlanTrabajo(): void {
+    const control = this.form.get('descripcion_plan_trabajo');
+
+    if (!control) return;
+
+    if (!this.canEditarPlanTrabajo) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+  }
+
+  formatApiDate(fechaRaw: string): string {
+    if (!fechaRaw) return '';
+    const dateObj = new Date(fechaRaw);
+    if (Number.isNaN(dateObj.getTime())) {
+      const match = fechaRaw.match(/^(\d{4}-\d{2}-\d{2})/);
+      return match ? match[1] : '';
+    }
+    return this.formatLocalDate(dateObj);
+  }
+
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }
