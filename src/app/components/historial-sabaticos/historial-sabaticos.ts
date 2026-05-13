@@ -50,7 +50,6 @@ export class HistorialSabaticos {
 
   //roles y permisos
   rol!: string;
-  perfil!: string;
   permisos: any[] = [];
   historialEstadoSabaticos: HistorialEstadoSabaticos[] = [];
   documento = '';
@@ -130,6 +129,12 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
     this.pageIndex = event.pageIndex;
   }
 
+  onViewPlanTrabajo(solicitudId: string): void {
+    localStorage.setItem('SabaticoId', solicitudId);
+    localStorage.setItem('rol', this.rol);
+    localStorage.setItem('tercero', this.terceroId.toString());
+  }
+  
   constructor(
     private readonly destroyRef: DestroyRef,
     private readonly translate: TranslateService,
@@ -149,7 +154,6 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
     this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
     .subscribe((response: any) => {
       this.permisos = response
-      this.perfil = response[0]?.Perfil?.Nombre ?? '';
     });
 
 
@@ -158,7 +162,6 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
       this.autenticationService.getDocument().then((documento: any) => {
       this.documento = String(documento ?? '');
 
-      console.log('Documento listo:', this.documento);
       this.loadTerceroId();
     });
     }else {
