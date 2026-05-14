@@ -1,7 +1,10 @@
 
 { "GLOBAL": {
     "regresar": "Regresar",
-    "agregar": "Agregar"
+    "agregar": "Agregar",
+    "aceptar": "Aceptar",
+    "cancelar": "Cancelar",
+    "atencion": "Atención"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Cargando historial de sabáticos...",
@@ -50,6 +53,50 @@
         "estado": "Estado"
       }
       
+    }
+  },
+  "CREAR_SOLICITUD": {
+    "title": "Crear solicitud de sabático",
+    "subtitle": "Diligencia los datos para registrar una nueva solicitud de sabático",
+    "roleInfo": "En este formulario el docente podrá registrar una solicitud para modificar o suspender el sabático seleccionado. Esta solicitud solo es válida si no han transcurrido más de 3 meses desde la fecha de inicio del sabático.",
+    "summary": {
+      "id": "ID",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFinal": "Fecha final",
+      "estadoSabatico": "Estado sabático",
+      "empty": "No se recibió información del sabático seleccionado. Vuelve al historial y selecciona un sabático para continuar."
+    },
+    "fields": {
+      "tipoSolicitud": "Tipo de solicitud",
+      "justificacion": "Justificación"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspensión",
+      "modificacion": "Modificación"
+    },
+    "alertas": {
+      "fueraDePlazo": "No es posible registrar la solicitud: ya transcurrieron más de 3 meses desde la fecha de inicio del sabático.",
+      "diasRestantes": "Tienes {{dias}} día(s) restantes para registrar la solicitud sobre este sabático."
+    },
+    "documentos": {
+      "title": "Documentos de soporte",
+      "ayudaPdf": "Solo se permiten archivos en formato PDF.",
+      "nombreDocumento": "Ingresa el nombre del documento",
+      "cargar": "Cargar",
+      "sinArchivo": "Sin archivo cargado",
+      "sinDocumentos": "Aún no has agregado documentos de soporte.",
+      "eliminarAria": "Eliminar documento",
+      "previsualizarAria": "Previsualizar documento",
+      "confirmEliminarTitle": "Eliminar documento",
+      "confirmEliminarText": "¿Estás seguro de que deseas eliminar el documento \"{{nombre}}\"? Esta acción no se puede deshacer."
+    },
+    "respuesta": {
+      "title": "Respuesta Solicitud",
+      "observaciones": "Observaciones y/o comentarios"
+    },
+    "actions": {
+      "guardar": "Guardar solicitud",
+      "registrar": "Registrar solicitud"
     }
   }
 }

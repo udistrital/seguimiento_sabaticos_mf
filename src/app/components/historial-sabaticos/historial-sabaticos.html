@@ -155,7 +155,7 @@
             </button>
 
             <button mat-icon-button class="historial-sabaticos__accion historial-sabaticos__accion--view"
-              type="button" [attr.aria-label]="'HISTORIAL_SABATICOS.actions.viewAria' | translate" *ngIf="canCrearSolicitud">
+              type="button" [attr.aria-label]="'HISTORIAL_SABATICOS.actions.viewAria' | translate" *ngIf="canCrearSolicitud" [routerLink]="['/crear']" [state]="{ sabatico: solicitud }">
               <mat-icon>build</mat-icon>
             </button>
 

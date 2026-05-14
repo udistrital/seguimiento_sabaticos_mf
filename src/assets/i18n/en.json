@@ -1,7 +1,10 @@
 {
   "GLOBAL": {
     "regresar": "Back",
-    "agregar": "Add"
+    "agregar": "Add",
+    "aceptar": "Accept",
+    "cancelar": "Cancel",
+    "atencion": "Attention"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Loading sabbatical history...",
@@ -59,6 +62,50 @@
         "fecha_final": "End date",
         "estado": "Status"
       }
+    }
+  },
+  "CREAR_SOLICITUD": {
+    "title": "Create sabbatical request",
+    "subtitle": "Fill in the information to register a new sabbatical request",
+    "roleInfo": "In this form the teacher can register a request to modify or suspend the selected sabbatical. This request is only valid if no more than 3 months have passed since the sabbatical start date.",
+    "summary": {
+      "id": "ID",
+      "fechaInicio": "Start date",
+      "fechaFinal": "End date",
+      "estadoSabatico": "Sabbatical status",
+      "empty": "No information was received from the selected sabbatical. Go back to the history and select one to continue."
+    },
+    "fields": {
+      "tipoSolicitud": "Request type",
+      "justificacion": "Justification"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspension",
+      "modificacion": "Modification"
+    },
+    "alertas": {
+      "fueraDePlazo": "It is not possible to register the request: more than 3 months have passed since the sabbatical start date.",
+      "diasRestantes": "You have {{dias}} day(s) left to register the request for this sabbatical."
+    },
+    "documentos": {
+      "title": "Supporting documents",
+      "ayudaPdf": "Only PDF files are allowed.",
+      "nombreDocumento": "Enter the document name",
+      "cargar": "Upload",
+      "sinArchivo": "No file uploaded",
+      "sinDocumentos": "You haven't added any supporting documents yet.",
+      "eliminarAria": "Delete document",
+      "previsualizarAria": "Preview document",
+      "confirmEliminarTitle": "Delete document",
+      "confirmEliminarText": "Are you sure you want to delete the document \"{{nombre}}\"? This action cannot be undone."
+    },
+    "respuesta": {
+      "title": "Request Response",
+      "observaciones": "Observations and/or comments"
+    },
+    "actions": {
+      "guardar": "Save request",
+      "registrar": "Register request"
     }
   }
 }
