@@ -4,7 +4,9 @@
     "agregar": "Agregar",
     "aceptar": "Aceptar",
     "cancelar": "Cancelar",
-    "atencion": "Atención"
+    "atencion": "Atención",
+    "error": "Error",
+    "operacion_exitosa": "Operación exitosa"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Cargando historial de sabáticos...",
@@ -90,13 +92,16 @@
       "confirmEliminarTitle": "Eliminar documento",
       "confirmEliminarText": "¿Estás seguro de que deseas eliminar el documento \"{{nombre}}\"? Esta acción no se puede deshacer."
     },
-    "respuesta": {
-      "title": "Respuesta Solicitud",
-      "observaciones": "Observaciones y/o comentarios"
-    },
     "actions": {
-      "guardar": "Guardar solicitud",
       "registrar": "Registrar solicitud"
+    },
+    "exito": {
+      "solicitudCreada": "La solicitud se registró correctamente."
+    },
+    "errores": {
+      "terceroNoEncontrado": "No se pudo identificar al docente. Vuelve a iniciar sesión e inténtalo de nuevo.",
+      "registroFallido": "No fue posible registrar la solicitud. Intenta de nuevo más tarde.",
+      "documentosFallidos": "La solicitud se registró, pero los siguientes documentos no se pudieron cargar: {{documentos}}."
     }
   }
 }

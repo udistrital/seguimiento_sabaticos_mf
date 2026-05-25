@@ -246,35 +246,7 @@
 
       </section>
 
-      <section class="crear-solicitud__summary crear-solicitud__summary--respuesta">
-
-        <h3 class="crear-solicitud__section-title">
-          {{ 'CREAR_SOLICITUD.respuesta.title' | translate }}
-        </h3>
-
-        <mat-form-field appearance="outline" class="crear-solicitud__field-full">
-          <mat-label>
-            {{ 'CREAR_SOLICITUD.respuesta.observaciones' | translate }}
-          </mat-label>
-          <textarea
-            matInput
-            rows="5"
-            class="crear-solicitud__textarea"
-            formControlName="respuestaSolicitud"></textarea>
-        </mat-form-field>
-
-      </section>
-
       <div class="crear-solicitud__actions">
-
-        <button
-          mat-raised-button
-          type="button"
-          class="crear-solicitud__save"
-          [disabled]="enviando || !puedeSolicitar"
-          (click)="onGuardarBorrador()">
-          {{ 'CREAR_SOLICITUD.actions.guardar' | translate }}
-        </button>
 
         <button
           mat-raised-button

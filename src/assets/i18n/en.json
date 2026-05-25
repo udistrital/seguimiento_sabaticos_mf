@@ -4,7 +4,9 @@
     "agregar": "Add",
     "aceptar": "Accept",
     "cancelar": "Cancel",
-    "atencion": "Attention"
+    "atencion": "Attention",
+    "error": "Error",
+    "operacion_exitosa": "Successful operation"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Loading sabbatical history...",
@@ -99,13 +101,16 @@
       "confirmEliminarTitle": "Delete document",
       "confirmEliminarText": "Are you sure you want to delete the document \"{{nombre}}\"? This action cannot be undone."
     },
-    "respuesta": {
-      "title": "Request Response",
-      "observaciones": "Observations and/or comments"
-    },
     "actions": {
-      "guardar": "Save request",
       "registrar": "Register request"
+    },
+    "exito": {
+      "solicitudCreada": "The request was registered successfully."
+    },
+    "errores": {
+      "terceroNoEncontrado": "Could not identify the teacher. Sign in again and try once more.",
+      "registroFallido": "It was not possible to register the request. Please try again later.",
+      "documentosFallidos": "The request was registered, but the following documents could not be uploaded: {{documentos}}."
     }
   }
 }
