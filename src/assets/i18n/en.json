@@ -1,7 +1,10 @@
 {
   "GLOBAL": {
     "regresar": "Back",
-    "agregar": "Add"
+    "agregar": "Add",
+    "aceptar": "Accept",
+    "cancelar": "Cancel",
+    "atencion": "Attention"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Loading sabbatical history...",
@@ -44,6 +47,10 @@
       "sectionDocumentos": "Supporting Documents",
       "documentos_pdf": "Only PDF files are allowed.",
       "nombre_documento": "Enter the document name",
+      "deleteConfirmTitle": "Delete document?",
+      "deleteConfirmText": "Are you sure you want to delete this document?",
+      "deleteSuccess": "Document deleted successfully.",
+      "deleteError": "Could not delete the document.",
 
       "enviar_revision": "Send for review",
       "cargar_pdf": "Upload PDF",
@@ -58,6 +65,14 @@
         "fecha_inicio": "Start date",
         "fecha_final": "End date",
         "estado": "Status"
+      }
+    }
+  },
+  "HISTORIAL_SOLICITUDES": {
+    "edit": {
+      "documentos": {
+        "noPreviewTitle": "Preview not available",
+        "noPreviewText": "This document cannot be previewed at the moment."
       }
     }
   }

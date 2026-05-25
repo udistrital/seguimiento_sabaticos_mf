@@ -191,70 +191,83 @@
             </span>
 
             <span class="editar-sabatico__documento-file">
-              {{ documento.archivo?.name || 'Sin archivo cargado' }}
+              {{ documento.archivo?.name || documento.remoteName || 'Sin archivo cargado' }}
             </span>
 
           </div>
 
           <!-- ACCIONES -->
           <div class="editar-sabatico__documento-actions">
+            <ng-container
+              *ngIf="
+                documento.archivo ||
+                documento.documentoId ||
+                documento.remoteUrl;
+                else sinArchivo
+              ">
 
-            <ng-container *ngIf="!documento.archivo; else accionesArchivo">
+                <!-- PREVISUALIZAR -->
+                <button
+                  mat-icon-button
+                  class="editar-sabatico__documento-preview"
+                  type="button"
+                  (click)="onPrevisualizarDocumento(documento.key)">
 
-              <!-- INPUT FILE -->
-              <input
-                #fileInput
-                type="file"
-                accept=".pdf,application/pdf"
-                hidden
-                (change)="onDocumentoChange(documento.key, $event)" />
+                  <mat-icon>visibility</mat-icon>
 
-              <!-- CARGAR -->
-              <button
-                mat-raised-button color="primary" type="button" class="editar-sabatico__send"
-                type="button"
-                (click)="fileInput.click()">
+                </button>
 
-                {{ 'HISTORIAL_SABATICOS.edit.cargar_pdf' | translate }}
+                <!-- REEMPLAZAR PDF -->
+                <input
+                  #fileInput
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  hidden
+                  (change)="onDocumentoChange(documento.key, $event)" />
 
-              </button>
+                <!-- ELIMINAR -->
+                <button
+                  mat-icon-button
+                  class="editar-sabatico__documento-remove"
+                  type="button"
+                  (click)="onEliminarDocumento(documento.key)">
 
-              <!-- ELIMINAR -->
-              <button
-                mat-icon-button
-                type="button"
-                (click)="onEliminarDocumento(documento.key)">
+                  <mat-icon>delete</mat-icon>
 
-                <mat-icon>delete</mat-icon>
+                </button>
 
-              </button>
+              </ng-container>
 
-            </ng-container>
+              <ng-template #sinArchivo>
 
-            <!-- ACCIONES ARCHIVO -->
-            <ng-template #accionesArchivo>
+                <input
+                  #fileInput
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  hidden
+                  (change)="onDocumentoChange(documento.key, $event)" />
 
-              <!-- PREVISUALIZAR -->
-              <button
-                mat-icon-button
-                type="button"
-                (click)="onPrevisualizarDocumento(documento.key)">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  (click)="fileInput.click()">
 
-                <mat-icon>visibility</mat-icon>
+                  {{ 'HISTORIAL_SABATICOS.edit.cargar_pdf' | translate }}
 
-              </button>
+                </button>
 
-              <!-- ELIMINAR -->
-              <button
-                mat-icon-button
-                type="button"
-                (click)="onEliminarDocumento(documento.key)">
+                <button
+                  mat-icon-button
+                  class="editar-sabatico__documento-remove"
+                  type="button"
+                  (click)="onEliminarDocumento(documento.key)">
 
-                <mat-icon>delete</mat-icon>
+                  <mat-icon>delete</mat-icon>
 
-              </button>
+                </button>
 
-            </ng-template>
+              </ng-template>
 
           </div>
 
@@ -265,10 +278,19 @@
     </div>
 
     <div class="editar-sabatico__actions" >
-      <button *ngIf="canEnviarRevision"
-        mat-raised-button color="primary" type="button" class="editar-sabatico__send">
+      <button 
+        mat-raised-button 
+        type="button"
+        class="editar-sabatico__save"
+        [disabled]="!canDisabledGuardar"
+        (click)="onGuardarPlanTrabajo()">
+          {{ 'HISTORIAL_SABATICOS.edit.save' | translate }}
+       </button>
+
+      <button 
+        mat-raised-button color="primary" type="button" class="editar-sabatico__send" [disabled]="!canDisabledEnviar" (click)="onEnviarRevision()">
         {{ 'HISTORIAL_SABATICOS.edit.enviar_revision' | translate }}
-        </button>
+      </button>
     </div>
 
   </mat-card-content>
