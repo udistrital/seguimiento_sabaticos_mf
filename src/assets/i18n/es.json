@@ -5,7 +5,7 @@
     "aceptar": "Aceptar",
     "cancelar": "Cancelar",
     "atencion": "Atención",
-    "cargando": "Cargando..."
+    "cargando": "Cargando...",
     "error": "Error",
     "operacion_exitosa": "Operación exitosa"
   },
@@ -47,6 +47,8 @@
       "deleteConfirmText": "¿Estás seguro de que deseas eliminar este documento?",
       "deleteSuccess": "Documento eliminado correctamente.",
       "deleteError": "No se pudo eliminar el documento.",
+      "sendConfirmTitle": "¿Enviar a revisión?",
+      "sendConfirmText": "¿Estás seguro de que deseas enviar este plan de trabajo a revisión?",
       "enviar_revision": "Enviar a revisión",
       "cargar_pdf": "Cargar PDF",
       "save": "Guardar cambios",
@@ -69,6 +71,7 @@
         "noPreviewTitle": "No hay vista previa disponible",
         "noPreviewText": "No se puede previsualizar este documento en este momento."
       }
+    },
   "CREAR_SOLICITUD": {
     "title": "Crear solicitud de sabático",
     "subtitle": "Diligencia los datos para registrar una nueva solicitud de sabático",
@@ -116,5 +119,6 @@
       "documentosFallidos": "La solicitud se registró, pero los siguientes documentos no se pudieron cargar: {{documentos}}."
     }
   }
+}
 }
 
