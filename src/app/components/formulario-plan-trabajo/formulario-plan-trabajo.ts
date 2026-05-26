@@ -221,7 +221,7 @@ export class FormularioPlanTrabajo {
             cleanup();
             this.popUpManager.showSuccessAlert(
               this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.documentos.deleteSuccess'
+                'HISTORIAL_SABATICOS.edit.deleteSuccess'
               )
             );
           },
@@ -229,7 +229,7 @@ export class FormularioPlanTrabajo {
             console.error(error);
             this.popUpManager.showErrorAlert(
               this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.documentos.deleteError'
+                'HISTORIAL_SABATICOS.edit.deleteError'
               )
             );
           }
