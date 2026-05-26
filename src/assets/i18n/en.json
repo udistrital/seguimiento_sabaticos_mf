@@ -4,7 +4,6 @@
     "agregar": "Add",
     "aceptar": "Accept",
     "cancelar": "Cancel",
-    "atencion": "Attention"
     "atencion": "Attention",
     "error": "Error",
     "operacion_exitosa": "Successful operation"
@@ -54,6 +53,8 @@
       "deleteConfirmText": "Are you sure you want to delete this document?",
       "deleteSuccess": "Document deleted successfully.",
       "deleteError": "Could not delete the document.",
+      "sendConfirmTitle": "Send for review?",
+      "sendConfirmText": "Are you sure you want to send this work plan for review?",
 
       "enviar_revision": "Send for review",
       "cargar_pdf": "Upload PDF",
@@ -77,6 +78,8 @@
         "noPreviewTitle": "Preview not available",
         "noPreviewText": "This document cannot be previewed at the moment."
       }
+    }
+  },
   "CREAR_SOLICITUD": {
     "title": "Create sabbatical request",
     "subtitle": "Fill in the information to register a new sabbatical request",

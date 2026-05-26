@@ -30,6 +30,7 @@ interface DocumentoDetalle {
   remoteUrl?: string | null;
   remoteName?: string | null;
   documentoId?: number | null;
+  isBackend?: boolean;
 }
 
 
@@ -91,11 +92,22 @@ export class FormularioPlanTrabajo {
   }
 
   get canEditarPlanTrabajo(): boolean {
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Plan_Trabajo');
+    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1)
+    const estadoCorrecto = this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'ES1' ||
+                          this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'CARGUE_PLAN_TRABAJO';
+    
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Plan_Trabajo') && estadoCorrecto;
   }
 
   get canEnviarRevision(): boolean {
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Revision_Plan_Trabajo');
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Revision_Plan_Trabajo');
+    
+    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1)
+    const estadoCorrecto = this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'ES1' ||
+                          this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'CARGUE_PLAN_TRABAJO';
+    
+    return tienePermiso && estadoCorrecto;
   }
 
   get canDisabledEnviar(): boolean {
@@ -107,7 +119,10 @@ export class FormularioPlanTrabajo {
         doc => doc.archivo || doc.id != null || !!doc.remoteUrl
       );
 
-    return !!descripcionValida && tieneDocumento;
+    // Debe tener permiso y estado correcto
+    const puedeEnviar = this.canEnviarRevision;
+
+    return !!descripcionValida && tieneDocumento && puedeEnviar;
   }
 
     get canDisabledGuardar(): boolean {
@@ -359,73 +374,81 @@ export class FormularioPlanTrabajo {
 
   async onGuardarDocumentos(): Promise<void> {
 
-  const documentosConArchivo =
-    this.documentosSeleccionadosDetalle.filter(
-      doc => doc.archivo
-    );
-
-  if (!documentosConArchivo.length) {
-    return;
-  }
-
-  const endpoint = `soporte_sabatico`;
-
-  try {
-
-    // ejecutar uno por uno
-    for (const doc of documentosConArchivo) {
-
-      const formData = new FormData();
-
-      formData.append(
-        'SabaticoId',
-        String(Number(this.sabaticoId))
+    const documentosConArchivo =
+      this.documentosSeleccionadosDetalle.filter(
+        doc => doc.archivo
       );
 
-      formData.append(
-        'rol_usuario',
-        this.rol
-      );
-
-      formData.append(
-        'estado_soporte_sabatico',
-        "S0"
-      );
-
-      formData.append(
-        'documentos',
-        doc.archivo as File
-      );
-
-      const response = await firstValueFrom(
-        this.sabaticosMidService.postFile(
-          endpoint,
-          formData
-        )
-      );
-
-      console.log(
-        `Documento ${doc.label} cargado`,
-        response
-      );
+    if (!documentosConArchivo.length) {
+      return;
     }
 
-    console.log(
-      'Todos los documentos fueron cargados'
-    );
+    const endpoint = `soporte_sabatico`;
 
-  } catch (error) {
+    try {
 
-    console.error(
-      'Error cargando documentos',
-      error
-    );
+      // ejecutar uno por uno
+      for (const doc of documentosConArchivo) {
 
-    throw error;
+        const formData = new FormData();
+
+        formData.append(
+          'SabaticoId',
+          String(Number(this.sabaticoId))
+        );
+
+        formData.append(
+          'rol_usuario',
+          this.rol
+        );
+
+        formData.append(
+          'estado_soporte_sabatico',
+          'S0'
+        );
+
+        formData.append(
+          'documentos',
+          doc.archivo as File
+        );
+
+        formData.append(
+          'nombre_archivo',
+          doc.label
+        );
+
+        const response = await firstValueFrom(
+          this.sabaticosMidService.postFile(
+            endpoint,
+            formData
+          )
+        );
+
+        console.log(
+          `Documento ${doc.label} cargado`,
+          response
+        );
+      }
+
+      console.log(
+        'Todos los documentos fueron cargados'
+      );
+
+      // recargar soportes para evitar reintentar archivos ya subidos
+      this.loadSoportesSabatico(this.sabaticoId);
+
+    } catch (error: any) {
+
+      console.error(
+        'Error cargando documentos',
+        error
+      );
+
+      throw error;
+    }
   }
-}
 
-onGuardarPlanTrabajo(executeSubscribe = true) {
+  onGuardarPlanTrabajo(executeSubscribe = true) {
 
   if (!this.canDisabledGuardar) {
     return;
@@ -488,8 +511,24 @@ onGuardarPlanTrabajo(executeSubscribe = true) {
   return request$;
 }
 
-onEnviarRevision(): void {
+async onEnviarRevision(): Promise<void> {
   if (!this.canDisabledEnviar) {
+    return;
+  }
+
+  const title = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.sendConfirmTitle'
+  );
+  const text = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.sendConfirmText'
+  );
+
+  const result = await this.popUpManager.showConfirmAlert(
+    text,
+    title
+  );
+
+  if (!result?.isConfirmed) {
     return;
   }
 
@@ -504,31 +543,52 @@ onEnviarRevision(): void {
   };
 
   this.loaderService.show();
-  this.onGuardarPlanTrabajo(false)
-    ?.pipe(
-      switchMap(() =>
-        this.sabaticosMidService.post(
-          endpoint,
-          data
-        )
-      ),
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.loaderService.hide())
-    )
-    .subscribe({
-      next: (response: any) => {
 
-        if (response.Status === 200) {
-          this.loadHistorialEstadoSabatico(
-            this.sabaticoId
-          );
+  // Si hay cambios (descripción o documentos nuevos), guardar primero
+  if (this.canDisabledGuardar) {
+    this.onGuardarPlanTrabajo(false)
+      ?.pipe(
+        switchMap(() =>
+          this.sabaticosMidService.post(
+            endpoint,
+            data
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response.Status === 200) {
+            this.loadHistorialEstadoSabatico(
+              this.sabaticoId
+            );
+          }
+        },
+        error: (error) => {
+          console.error(error);
         }
-      },
-
-      error: (error) => {
-        console.error(error);
-      }
-    });
+      });
+  } else {
+    // Sin cambios, ir directo al cambio de estado
+    this.sabaticosMidService.post(endpoint, data)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response.Status === 200) {
+            this.loadHistorialEstadoSabatico(
+              this.sabaticoId
+            );
+          }
+        },
+        error: (error) => {
+          console.error(error);
+        }
+      });
+  }
 }
 
   constructor(
@@ -555,7 +615,6 @@ onEnviarRevision(): void {
       .pipe(finalize(() => this.loaderService.hide()))
       .subscribe((response: any) => {
         this.permisos = response;
-        this.togglePlanTrabajo();
         this.loadHistorialEstadoSabatico(this.sabaticoId);
         this.loadPlanDeTrabajo(this.sabaticoId);
         this.loadSoportesSabatico(this.sabaticoId);
@@ -577,9 +636,9 @@ onEnviarRevision(): void {
     this.loaderService.show();
 
     const endpoint =
-      `soporte_sabatico?query=SabaticoId:${id},Activo:True`;
+      `soporte_sabatico/${id}`;
 
-    this.sabaticosCrudService
+    this.sabaticosMidService
       .get(endpoint)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
@@ -594,19 +653,27 @@ onEnviarRevision(): void {
             (Array.isArray(data) ? data : [])
             .map((item: any, idx: number) => {
 
+              const documento = item.Documento ?? item;
               const key = String(
                 item.Id ??
+                documento.Id ??
                 item.DocumentoId ??
                 crypto.randomUUID()
               );
 
               const documentoId =
-                item.DocumentoId ?? null;
+                documento?.Id ?? item.DocumentoId ?? null;
 
               const soporteId =
                 item.Id ?? item.DocumentoId ?? null;
 
-              // guardar id backend
+              const remoteUrl =
+                documento?.Enlace ??
+                item.Url ??
+                item.DocumentoUrl ??
+                item.Enlace ??
+                null;
+
               this.documentoBackendIds[key] =
                 documentoId;
 
@@ -615,6 +682,7 @@ onEnviarRevision(): void {
                 id: soporteId,
                 rawData: item,
                 label: String(
+                  documento?.Nombre ??
                   item.Nombre ??
                   item.NombreDocumento ??
                   item.Label ??
@@ -622,16 +690,14 @@ onEnviarRevision(): void {
                 ),
                 documentoId,
                 archivo: null,
-                remoteUrl:
-                  item.Url ??
-                  item.Enlace ??
-                  item.DocumentoUrl ??
-                  null,
+                remoteUrl,
                 remoteName:
+                  documento?.Nombre ??
                   item.FileName ??
                   item.Nombre ??
                   item.NombreDocumento ??
                   null,
+                isBackend: Boolean(item.Documento || item.DocumentoId || item.Id),
               };
             });
         },
@@ -653,6 +719,8 @@ onEnviarRevision(): void {
       .subscribe((response: any) => {
         const data = response?.Data[0] ?? response ?? [];
         this.sabaticoData = data;
+        // Actualizar estado del control de descripción basado en el estado del sabatico
+        this.togglePlanTrabajo();
       });
   }
 

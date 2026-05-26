@@ -279,6 +279,7 @@
 
     <div class="editar-sabatico__actions" >
       <button 
+        *ngIf="canEditarPlanTrabajo"
         mat-raised-button 
         type="button"
         class="editar-sabatico__save"
@@ -288,6 +289,7 @@
        </button>
 
       <button 
+        *ngIf="canEnviarRevision"
         mat-raised-button color="primary" type="button" class="editar-sabatico__send" [disabled]="!canDisabledEnviar" (click)="onEnviarRevision()">
         {{ 'HISTORIAL_SABATICOS.edit.enviar_revision' | translate }}
       </button>
@@ -295,4 +297,4 @@
 
   </mat-card-content>
 
-</mat-card>
+</mat-card> 
