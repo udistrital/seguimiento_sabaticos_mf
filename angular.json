@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "seguimiento-sabatico-mf": {
+    "seguimiento-sabaticos-mf": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -12,12 +12,12 @@
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "seguimiento-sabatico-mf",
+      "prefix": "seguimiento-sabaticos-mf",
       "architect": {
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "outputPath": "dist/seguimiento-sabatico-mf",
+            "outputPath": "dist/seguimiento-sabaticos-mf",
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -38,7 +38,7 @@
             "main": "src/main.single-spa.ts",
             "customWebpackConfig": {
               "path": "extra-webpack.config.js",
-              "libraryName": "seguimiento-sabatico-mf",
+              "libraryName": "seguimiento-sabaticos-mf",
               "libraryTarget": "umd"
             },
             "deployUrl": "http://localhost:4222/"
@@ -78,10 +78,10 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "seguimiento-sabatico-mf:build:production"
+              "buildTarget": "seguimiento-sabaticos-mf:build:production"
             },
             "development": {
-              "buildTarget": "seguimiento-sabatico-mf:build:development"
+              "buildTarget": "seguimiento-sabaticos-mf:build:development"
             }
           },
           "defaultConfiguration": "development"

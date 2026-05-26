@@ -1,5 +1,5 @@
 {
-  "name": "seguimiento-sabatico-mf",
+  "name": "seguimiento-sabaticos-mf",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,9 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:seguimiento-sabatico-mf": "node dist/seguimiento-sabatico-mf/server/server.mjs",
-    "build:single-spa:seguimiento-sabatico-mf": "ng build seguimiento-sabatico-mf --configuration production",
-    "serve:single-spa:seguimiento-sabatico-mf": "ng s --project seguimiento-sabatico-mf --disable-host-check --port 4222 --live-reload false"
+    "build:single-spa:seguimiento-sabaticos-mf": "ng build seguimiento-sabaticos-mf --configuration production",
+    "serve:single-spa:seguimiento-sabaticos-mf": "ng s --project seguimiento-sabaticos-mf --disable-host-check --port 4222 --live-reload false",
+    "build:prod": "ng build --progress --configuration=production",
+    "build:test": "ng build --progress --configuration=development"
   },
   "prettier": {
     "printWidth": 100,

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'seguimiento-sabatico-mf-empty-route',
+  selector: 'seguimiento-sabaticos-mf-empty-route',
   template: '',
 })
 export class EmptyRouteComponent {}

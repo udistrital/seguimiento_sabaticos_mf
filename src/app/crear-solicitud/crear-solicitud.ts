@@ -36,7 +36,7 @@ interface DocumentoDetalle {
 type DocumentoConArchivo = DocumentoDetalle & { archivo: File };
 
 @Component({
-  selector: 'seguimiento-sabatico-mf-crear-solicitud',
+  selector: 'seguimiento-sabaticos-mf-crear-solicitud',
   standalone: true,
   imports: [
     CommonModule,

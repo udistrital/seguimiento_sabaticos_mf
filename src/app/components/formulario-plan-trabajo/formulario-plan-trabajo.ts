@@ -23,7 +23,7 @@ interface DocumentoDetalle {
 
 
 @Component({
-  selector: 'seguimiento-sabatico-mf-formulario-plan-trabajo',
+  selector: 'seguimiento-sabaticos-mf-formulario-plan-trabajo',
   standalone: true,
   imports: [
     MatCardModule,
