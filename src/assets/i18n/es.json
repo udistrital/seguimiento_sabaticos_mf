@@ -6,6 +6,8 @@
     "cancelar": "Cancelar",
     "atencion": "Atención",
     "cargando": "Cargando..."
+    "error": "Error",
+    "operacion_exitosa": "Operación exitosa"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Cargando historial de sabáticos...",
@@ -67,6 +69,51 @@
         "noPreviewTitle": "No hay vista previa disponible",
         "noPreviewText": "No se puede previsualizar este documento en este momento."
       }
+  "CREAR_SOLICITUD": {
+    "title": "Crear solicitud de sabático",
+    "subtitle": "Diligencia los datos para registrar una nueva solicitud de sabático",
+    "roleInfo": "En este formulario el docente podrá registrar una solicitud para modificar o suspender el sabático seleccionado. Esta solicitud solo es válida si no han transcurrido más de 3 meses desde la fecha de inicio del sabático.",
+    "summary": {
+      "id": "ID",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFinal": "Fecha final",
+      "estadoSabatico": "Estado sabático",
+      "empty": "No se recibió información del sabático seleccionado. Vuelve al historial y selecciona un sabático para continuar."
+    },
+    "fields": {
+      "tipoSolicitud": "Tipo de solicitud",
+      "justificacion": "Justificación"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspensión",
+      "modificacion": "Modificación"
+    },
+    "alertas": {
+      "fueraDePlazo": "No es posible registrar la solicitud: ya transcurrieron más de 3 meses desde la fecha de inicio del sabático.",
+      "diasRestantes": "Tienes {{dias}} día(s) restantes para registrar la solicitud sobre este sabático."
+    },
+    "documentos": {
+      "title": "Documentos de soporte",
+      "ayudaPdf": "Solo se permiten archivos en formato PDF.",
+      "nombreDocumento": "Ingresa el nombre del documento",
+      "cargar": "Cargar",
+      "sinArchivo": "Sin archivo cargado",
+      "sinDocumentos": "Aún no has agregado documentos de soporte.",
+      "eliminarAria": "Eliminar documento",
+      "previsualizarAria": "Previsualizar documento",
+      "confirmEliminarTitle": "Eliminar documento",
+      "confirmEliminarText": "¿Estás seguro de que deseas eliminar el documento \"{{nombre}}\"? Esta acción no se puede deshacer."
+    },
+    "actions": {
+      "registrar": "Registrar solicitud"
+    },
+    "exito": {
+      "solicitudCreada": "La solicitud se registró correctamente."
+    },
+    "errores": {
+      "terceroNoEncontrado": "No se pudo identificar al docente. Vuelve a iniciar sesión e inténtalo de nuevo.",
+      "registroFallido": "No fue posible registrar la solicitud. Intenta de nuevo más tarde.",
+      "documentosFallidos": "La solicitud se registró, pero los siguientes documentos no se pudieron cargar: {{documentos}}."
     }
   }
 }

@@ -5,6 +5,9 @@
     "aceptar": "Accept",
     "cancelar": "Cancel",
     "atencion": "Attention"
+    "atencion": "Attention",
+    "error": "Error",
+    "operacion_exitosa": "Successful operation"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Loading sabbatical history...",
@@ -74,6 +77,51 @@
         "noPreviewTitle": "Preview not available",
         "noPreviewText": "This document cannot be previewed at the moment."
       }
+  "CREAR_SOLICITUD": {
+    "title": "Create sabbatical request",
+    "subtitle": "Fill in the information to register a new sabbatical request",
+    "roleInfo": "In this form the teacher can register a request to modify or suspend the selected sabbatical. This request is only valid if no more than 3 months have passed since the sabbatical start date.",
+    "summary": {
+      "id": "ID",
+      "fechaInicio": "Start date",
+      "fechaFinal": "End date",
+      "estadoSabatico": "Sabbatical status",
+      "empty": "No information was received from the selected sabbatical. Go back to the history and select one to continue."
+    },
+    "fields": {
+      "tipoSolicitud": "Request type",
+      "justificacion": "Justification"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspension",
+      "modificacion": "Modification"
+    },
+    "alertas": {
+      "fueraDePlazo": "It is not possible to register the request: more than 3 months have passed since the sabbatical start date.",
+      "diasRestantes": "You have {{dias}} day(s) left to register the request for this sabbatical."
+    },
+    "documentos": {
+      "title": "Supporting documents",
+      "ayudaPdf": "Only PDF files are allowed.",
+      "nombreDocumento": "Enter the document name",
+      "cargar": "Upload",
+      "sinArchivo": "No file uploaded",
+      "sinDocumentos": "You haven't added any supporting documents yet.",
+      "eliminarAria": "Delete document",
+      "previsualizarAria": "Preview document",
+      "confirmEliminarTitle": "Delete document",
+      "confirmEliminarText": "Are you sure you want to delete the document \"{{nombre}}\"? This action cannot be undone."
+    },
+    "actions": {
+      "registrar": "Register request"
+    },
+    "exito": {
+      "solicitudCreada": "The request was registered successfully."
+    },
+    "errores": {
+      "terceroNoEncontrado": "Could not identify the teacher. Sign in again and try once more.",
+      "registroFallido": "It was not possible to register the request. Please try again later.",
+      "documentosFallidos": "The request was registered, but the following documents could not be uploaded: {{documentos}}."
     }
   }
 }
