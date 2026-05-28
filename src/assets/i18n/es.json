@@ -71,7 +71,8 @@
         "noPreviewTitle": "No hay vista previa disponible",
         "noPreviewText": "No se puede previsualizar este documento en este momento."
       }
-    },
+    }
+  },
   "CREAR_SOLICITUD": {
     "title": "Crear solicitud de sabático",
     "subtitle": "Diligencia los datos para registrar una nueva solicitud de sabático",
@@ -116,9 +117,9 @@
     "errores": {
       "terceroNoEncontrado": "No se pudo identificar al docente. Vuelve a iniciar sesión e inténtalo de nuevo.",
       "registroFallido": "No fue posible registrar la solicitud. Intenta de nuevo más tarde.",
-      "documentosFallidos": "La solicitud se registró, pero los siguientes documentos no se pudieron cargar: {{documentos}}."
+      "documentosFallidos": "La solicitud se registró, pero los siguientes documentos no se pudieron cargar: {{documentos}}.",
+      "sinDocumentos": "Debes cargar al menos un documento de soporte en formato PDF para registrar la solicitud."
     }
   }
-}
 }
 

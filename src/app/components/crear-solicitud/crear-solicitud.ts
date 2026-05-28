@@ -11,20 +11,28 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
-import { PopUpManager } from '../../managers/popUpManager';
-import { ImplicitAutenticationService } from '../services/implicit_authentication.service';
+import { PopUpManager } from '../../../managers/popUpManager';
+import { RequestManager } from '../../../managers/requestManager';
+import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 import {
   CrearSolicitudFormulario,
   CrearSolicitudRequest,
   SabaticosMidService,
-} from '../services/sabaticos-mid.service';
-import { TercerosService } from '../services/terceros.service';
+} from '../../services/sabaticos-mid.service';
+import { TercerosService } from '../../services/terceros.service';
 
 export interface SabaticoSeleccionado {
   id: string;
   fechaInicio: string;
   fechaFinal: string;
   estadoSabatico: string;
+}
+
+interface DocenteInfo {
+  nombre: string;
+  facultad: string;
+  identificacion: string;
+  proyecto_curricular: string;
 }
 
 interface DocumentoDetalle {
@@ -67,6 +75,13 @@ export class CrearSolicitud {
   nombreDocumento = '';
   documentosSeleccionadosDetalle: DocumentoDetalle[] = [];
 
+  docenteInfo: DocenteInfo = {
+    nombre: '',
+    facultad: '',
+    identificacion: '',
+    proyecto_curricular: '',
+  };
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly translate: TranslateService,
@@ -75,12 +90,14 @@ export class CrearSolicitud {
     private readonly sabaticosMidService: SabaticosMidService,
     private readonly tercerosService: TercerosService,
     private readonly autenticationService: ImplicitAutenticationService,
+    private readonly requestManager: RequestManager,
     private readonly destroyRef: DestroyRef,
   ) {
     this.translate.setDefaultLang('es');
     this.translate.use('es');
     this.form = this.buildForm();
     this.sabaticoSeleccionado = this.resolveSabaticoSeleccionado();
+    this.loadDocenteInfo();
   }
 
   get fechaInicioSabatico(): Date | null {
@@ -111,6 +128,12 @@ export class CrearSolicitud {
     }
 
     return this.startOfToday().getTime() <= fechaLimite.getTime();
+  }
+
+  get tieneDocumentosCargados(): boolean {
+    return this.documentosSeleccionadosDetalle.some(
+      (doc) => !!doc.archivo && this.esArchivoPdf(doc.archivo),
+    );
   }
 
   get diasRestantesSolicitud(): number | null {
@@ -152,6 +175,13 @@ export class CrearSolicitud {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    if (!this.tieneDocumentosCargados) {
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('CREAR_SOLICITUD.errores.sinDocumentos'),
+      );
       return;
     }
 
@@ -283,6 +313,49 @@ export class CrearSolicitud {
     return item.key;
   }
 
+  private loadDocenteInfo(): void {
+    this.autenticationService.getDocument().then((documentoRaw: any) => {
+      const documento = String(documentoRaw ?? '').trim();
+      if (!documento) {
+        return;
+      }
+
+      this.docenteInfo.identificacion = documento;
+
+      this.requestManager.setPath('ACADEMICA_MID_SERVICE');
+      this.requestManager.getXml(`consulta_datos_docente_planta/${documento}`)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response: any) => {
+            const parsed = this.parseDocenteResponse(response);
+            this.docenteInfo = { ...this.docenteInfo, ...parsed };
+          },
+          error: (err) => {
+            console.error('Error al cargar información del docente', err);
+          },
+        });
+    });
+  }
+
+  private parseDocenteResponse(response: string): Partial<DocenteInfo> {
+    try {
+      const data = JSON.parse(response);
+      const datos = data?.datosCollection?.datos?.[0];
+      if (!datos) {
+        return {};
+      }
+
+      return {
+        nombre: `${datos.nombres || ''} ${datos.apellidos || ''}`.trim(),
+        facultad: datos.facultad || '',
+        identificacion: datos.documento || '',
+        proyecto_curricular: datos.proyecto || '',
+      };
+    } catch {
+      return {};
+    }
+  }
+
   private buildForm(): FormGroup {
     return this.fb.group({
       tipoSolicitud: ['', Validators.required],
@@ -303,6 +376,12 @@ export class CrearSolicitud {
       : null;
 
     return {
+      docente: {
+        nombre: this.docenteInfo.nombre || null,
+        facultad: this.docenteInfo.facultad || null,
+        identificacion: this.docenteInfo.identificacion || null,
+        proyecto_curricular: this.docenteInfo.proyecto_curricular || null,
+      },
       tipoSolicitud: this.toNullable(tipoSolicitud),
       justificacion: this.toNullable(justificacion),
       respuestaSolicitud: null,
@@ -320,9 +399,10 @@ export class CrearSolicitud {
     );
 
     if (pdfs.length === 0) {
-      this.popUpManager.showSuccessAlert(
+      await this.popUpManager.showSuccessAlert(
         this.translate.instant('CREAR_SOLICITUD.exito.solicitudCreada'),
       );
+      this.router.navigate(['']);
       return;
     }
 
@@ -356,9 +436,10 @@ export class CrearSolicitud {
         }),
       );
     } else {
-      this.popUpManager.showSuccessAlert(
+      await this.popUpManager.showSuccessAlert(
         this.translate.instant('CREAR_SOLICITUD.exito.solicitudCreada'),
       );
+      this.router.navigate(['']);
     }
   }
 

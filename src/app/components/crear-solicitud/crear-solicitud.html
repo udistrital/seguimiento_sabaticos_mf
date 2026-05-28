@@ -252,7 +252,7 @@
           mat-raised-button
           color="primary"
           type="button"
-          [disabled]="enviando || !puedeSolicitar"
+          [disabled]="enviando || !puedeSolicitar || !tieneDocumentosCargados"
           (click)="onRegistrar()">
           {{ 'CREAR_SOLICITUD.actions.registrar' | translate }}
         </button>

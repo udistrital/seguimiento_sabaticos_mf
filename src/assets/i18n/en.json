@@ -124,7 +124,8 @@
     "errores": {
       "terceroNoEncontrado": "Could not identify the teacher. Sign in again and try once more.",
       "registroFallido": "It was not possible to register the request. Please try again later.",
-      "documentosFallidos": "The request was registered, but the following documents could not be uploaded: {{documentos}}."
+      "documentosFallidos": "The request was registered, but the following documents could not be uploaded: {{documentos}}.",
+      "sinDocumentos": "You must upload at least one supporting document in PDF format to register the request."
     }
   }
 }
