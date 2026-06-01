@@ -6,7 +6,9 @@
     "cancelar": "Cancel",
     "atencion": "Attention",
     "error": "Error",
-    "operacion_exitosa": "Successful operation"
+    "operacion_exitosa": "Successful operation",
+    "aprobado" : "Approved",
+    "rechazado" : "Rejected"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Loading sabbatical history...",
@@ -14,7 +16,10 @@
     "title": "Sabbaticals",
     "description": "History of sabbaticals registered in the system",
     "tableAriaLabel": "Sabbatical history table",
-
+    "secretaria": {
+      "title": "Secretary management",
+      "observaciones": "Secretary observations"
+    },
     "columns": {
       "id": "ID",
       "fechaInicio": "Start date",
@@ -25,7 +30,8 @@
     },
 
     "roleInfo": {
-      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review."
+      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review.",
+            "secretariaAcademica": "In this module, the academic secretary will be able to review the sabbatical work plans, approving or amending the work plan and notifying the teacher about the progress of the work plan."
     },
 
     "filters": {
