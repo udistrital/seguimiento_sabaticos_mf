@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatInputModule } from '@angular/material/input';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -20,6 +20,18 @@ import { LoaderService } from '../../services/loader.service';
 import { firstValueFrom, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
+import {
+  Role,
+  Permission,
+  EstadoSabaticoCode,
+  EstadoSoporteNombre,
+  EstadoSoporteCodigo,
+  Endpoints,
+  FormDataKeys,
+  EstadoSoporteIdMap,
+  RoutePaths,
+  Messages,
+} from './formulario-plan-trabajo.constants';
 
 interface DocumentoDetalle {
   key: string;
@@ -31,6 +43,7 @@ interface DocumentoDetalle {
   remoteName?: string | null;
   documentoId?: number | null;
   isBackend?: boolean;
+  estadoSoporte?: string | null;
 }
 
 
@@ -65,9 +78,11 @@ export class FormularioPlanTrabajo {
    permisos: any[] = [];
    terceroId = '';
    sabaticoId = '';
+   historialSabaticoData: any = null;
    sabaticoData: any = null;
    planTrabajoData: any = null;
    originalDescripcionPlanTrabajo = '';
+   originalObservacionesSecretaria = '';
   // gestor documental helpers
   documentoObjectUrls: Record<string, string> = {};
   documentoBackendIds: Record<string, number | null> = {};
@@ -76,11 +91,11 @@ export class FormularioPlanTrabajo {
    window = window;
 
   get isDocente(): boolean {
-    return this.rol === 'DOCENTE';
+    return this.rol === Role.DOCENTE;
   } 
 
   get isSecretariaAcademica(): boolean {
-    return this.rol === 'SECRETARIA_ACADEMICA';
+    return this.rol === Role.SECRETARIA_ACADEMICA;
   }
 
   get roleInfoMessageKey(): string {
@@ -91,23 +106,64 @@ export class FormularioPlanTrabajo {
     return 'HISTORIAL_SABATICOS.edit.roleInfo.docente';
   }
 
-  get canEditarPlanTrabajo(): boolean {
-    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1)
-    const estadoCorrecto = this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'ES1' ||
-                          this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'CARGUE_PLAN_TRABAJO';
+  get canEditarPlanTrabajoDocente(): boolean {
+    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
+      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
+      estado === EstadoSabaticoCode.ES4;
     
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Plan_Trabajo') && estadoCorrecto;
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EditarPlanTrabajo) && estadoCorrecto;
   }
 
-  get canEnviarRevision(): boolean {
-    // Verificar permiso
-    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Revision_Plan_Trabajo');
+  get canSaveObservacionesSecretaria(): boolean {
     
-    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1)
-    const estadoCorrecto = this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'ES1' ||
-                          this.sabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === 'CARGUE_PLAN_TRABAJO';
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.GuardarPlanTrabajo) && this.isSecretariaAcademica;
+  }
+
+  get canSubsanarSecretaria(): boolean {
+
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.SubsanarPlanTrabajo) && this.isSecretariaAcademica;
+  }
+
+  get canEnviarRevisionDocente(): boolean {
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EnviarRevision);
+    
+    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
+      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
+      estado === EstadoSabaticoCode.ES4;
     
     return tienePermiso && estadoCorrecto;
+  }
+
+  get canEnviarRevisionSecretaria(): boolean {
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EnviarRevision);
+    
+    return tienePermiso && this.isSecretariaAcademica;
+  }
+
+    get CargarSoportes(): boolean {
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.CargarSoporte);
+    
+    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
+      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
+      estado === EstadoSabaticoCode.ES4;
+    
+    return tienePermiso && estadoCorrecto && this.isDocente;
+  }
+
+  get canAprobarRechazarSoportes(): boolean {
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
+
+    return tienePermiso && this.isSecretariaAcademica;
   }
 
   get canDisabledEnviar(): boolean {
@@ -120,12 +176,24 @@ export class FormularioPlanTrabajo {
       );
 
     // Debe tener permiso y estado correcto
-    const puedeEnviar = this.canEnviarRevision;
+    const puedeEnviar = this.canEnviarRevisionDocente;
 
     return !!descripcionValida && tieneDocumento && puedeEnviar;
   }
 
-    get canDisabledGuardar(): boolean {
+    get hasObservacionesSecretaria(): boolean {
+    const control = this.form.get('observacionesSecretaria');
+    const value = control?.value || '';
+    return value.trim().length > 0;
+  }
+
+  get hasObservacionesCambiaron(): boolean {
+    const control = this.form.get('observacionesSecretaria');
+    const currentValue = control?.value || '';
+    return currentValue !== this.originalObservacionesSecretaria;
+  }
+
+  get canDisabledGuardar(): boolean {
     const descripcionControl = this.form.get('descripcion_plan_trabajo');
     const descripcionValida = descripcionControl?.valid;
     const descripcionModificada =
@@ -137,11 +205,30 @@ export class FormularioPlanTrabajo {
         doc => doc.archivo
       );
 
-    return descripcionModificada || tieneDocumentoNuevo;
+    return descripcionModificada || tieneDocumentoNuevo || this.hasObservacionesSecretaria;
+  }
+
+  get canEnviarRevisionSecretariaEnabled(): boolean {
+    const tieneDocumentos = this.documentosSeleccionadosDetalle.length > 0;
+    const todosAprobados = tieneDocumentos && this.documentosSeleccionadosDetalle.every(
+      doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
+    );
+    return this.canEnviarRevisionSecretaria && todosAprobados;
+  }
+
+  get isEstadoCarguePlanTrabajo(): boolean {
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    return estado === EstadoSabaticoCode.ES1 ||
+      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
+      estado === EstadoSabaticoCode.ES4;
+  }
+
+  get isEstadoSubsanacion(): boolean {
+    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.ES4;
   }
 
   onAgregarDocumento(): void {
-    if (!this.canEditarPlanTrabajo) {
+    if (!this.canEditarPlanTrabajoDocente) {
       return;
     }
 
@@ -196,6 +283,133 @@ export class FormularioPlanTrabajo {
       URL.createObjectURL(archivo);
   }
 }
+
+  async onAprobarSoporte(key: string): Promise<void> {
+    const documento = this.documentosSeleccionadosDetalle.find(
+      doc => doc.key === key
+    );
+
+    if (!documento) {
+      return;
+    }
+
+    const title = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.approveConfirmTitle'
+    );
+    const text = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.approveConfirmText'
+    );
+
+    const result = await this.popUpManager.showConfirmAlert(text, title);
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    await this.updateEstadoSoporte(documento, 'APROBADO');
+  }
+
+  async onRechazarSoporte(key: string): Promise<void> {
+    const documento = this.documentosSeleccionadosDetalle.find(
+      doc => doc.key === key
+    );
+
+    if (!documento) {
+      return;
+    }
+
+    const title = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.rechazarConfirmarTtitle'
+    );
+    const text = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.rechazarConfirmarText'
+    );
+
+    const result = await this.popUpManager.showConfirmAlert(text, title);
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    await this.updateEstadoSoporte(documento, 'RECHAZADO');
+  }
+
+  private async updateEstadoSoporte(documento: DocumentoDetalle, nuevoEstado: string): Promise<void> {
+    this.loaderService.show();
+
+    // Obtener el ID del estado según el nuevo estado
+    let estadoSoporteId: number | null = null;
+    if (nuevoEstado === EstadoSoporteNombre.APROBADO) {
+      estadoSoporteId = EstadoSoporteIdMap.APROBADO;
+    } else if (nuevoEstado === EstadoSoporteNombre.RECHAZADO) {
+      estadoSoporteId = EstadoSoporteIdMap.RECHAZADO;
+    }
+
+    // Formatear fecha en formato PostgreSQL: YYYY-MM-DD HH:MM:SS.sss
+    const formatDateForPostgres = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      const ms = String(date.getMilliseconds()).padStart(3, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
+    };
+
+    const fechaActual = formatDateForPostgres(new Date());
+    const fechaCreacion = documento.rawData?.FechaCreacion || fechaActual;
+
+    // Asegurar que tomamos correctamente el DocumentoId (puede venir en rawData.Documento.Id)
+    const documentoIdToSend = documento.documentoId ?? documento.rawData?.Documento?.Id ?? documento.rawData?.documento?.Id ?? documento.rawData?.DocumentoId ?? null;
+
+    // Construir el cuerpo con la estructura del modelo SoporteSabatico
+    const body = {
+      Id: documento.id ?? documento.rawData?.Id,
+      DocumentoId: documentoIdToSend,
+      Activo: true,
+      FechaCreacion: fechaCreacion,
+      FechaModificacion: fechaActual,
+      RolUsuario: documento.rawData?.RolUsuario || '',
+      SabaticoId: documento.rawData?.SabaticoId,
+      EstadoSoporteSabaticoId: {
+        Id: estadoSoporteId,
+      }
+    };
+
+    this.sabaticosCrudService.put(Endpoints.SoporteSabatico, body as any)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: () => {
+          // Actualizar el estado del documento en la lista
+          const index = this.documentosSeleccionadosDetalle.findIndex(
+            doc => doc.key === documento.key
+          );
+          if (index !== -1) {
+            this.documentosSeleccionadosDetalle[index].estadoSoporte = nuevoEstado;
+          }
+
+          const successMessage = nuevoEstado === 'APROBADO'
+            ? 'HISTORIAL_SABATICOS.edit.approveSuccess'
+            : 'HISTORIAL_SABATICOS.edit.rejectSuccess';
+
+          this.popUpManager.showSuccessAlert(
+            this.translate.instant(successMessage)
+          );
+        },
+        error: (error) => {
+          console.error(error);
+          const errorMessage = nuevoEstado === 'APROBADO'
+            ? 'HISTORIAL_SABATICOS.edit.approveError'
+            : 'HISTORIAL_SABATICOS.edit.rejectError';
+
+          this.popUpManager.showErrorAlert(
+            this.translate.instant(errorMessage)
+          );
+        }
+      });
+  }
 
   async onEliminarDocumento(key: string): Promise<void> {
     const documento = this.documentosSeleccionadosDetalle.find(
@@ -383,7 +597,7 @@ export class FormularioPlanTrabajo {
       return;
     }
 
-    const endpoint = `soporte_sabatico`;
+    const endpoint = Endpoints.SoporteSabatico;
 
     try {
 
@@ -392,30 +606,11 @@ export class FormularioPlanTrabajo {
 
         const formData = new FormData();
 
-        formData.append(
-          'SabaticoId',
-          String(Number(this.sabaticoId))
-        );
-
-        formData.append(
-          'rol_usuario',
-          this.rol
-        );
-
-        formData.append(
-          'estado_soporte_sabatico',
-          'S0'
-        );
-
-        formData.append(
-          'documentos',
-          doc.archivo as File
-        );
-
-        formData.append(
-          'nombre_archivo',
-          doc.label
-        );
+        formData.append(FormDataKeys.SabaticoId, String(Number(this.sabaticoId)));
+        formData.append(FormDataKeys.RolUsuario, this.rol);
+        formData.append(FormDataKeys.EstadoSoporteSabatico, EstadoSoporteCodigo.S0);
+        formData.append(FormDataKeys.Documentos, doc.archivo as File);
+        formData.append(FormDataKeys.NombreArchivo, doc.label);
 
         const response = await firstValueFrom(
           this.sabaticosMidService.postFile(
@@ -511,8 +706,91 @@ export class FormularioPlanTrabajo {
   return request$;
 }
 
-async onEnviarRevision(): Promise<void> {
-  if (!this.canDisabledEnviar) {
+onGuardarObservacionesSecretaria(): void {
+  
+  if (!this.canSaveObservacionesSecretaria) {
+    return;
+  }
+
+  const endpoint = `sabatico`;
+
+  this.sabaticoData.Observaciones = this.form.get('observacionesSecretaria')?.value || '';
+
+
+  this.loaderService.show();
+
+  const formatDateForPostgresNoMs = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const parseToDate = (val: any): Date | null => {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    if (typeof val !== 'string') return null;
+    let s = val.trim();
+    s = s.replace(/(\+0+\s*)+/g, '+0000');
+    s = s.replace(/\s*\+0000\s*$/, '');
+    s = s.replace(/^([0-9]{4}-[0-9]{2}-[0-9]{2})\s+([0-9]{2}:[0-9]{2}:[0-9]{2})(.*)$/, '$1T$2$3');
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) return d;
+    return null;
+  };
+
+  const sanitizeToPostgresDates = (obj: any) => {
+    if (!obj || typeof obj !== 'object') return;
+    Object.keys(obj).forEach((k) => {
+      const val = obj[k];
+      if (val == null) return;
+      if (typeof val === 'string' && /fecha/i.test(k)) {
+        const d = parseToDate(val);
+        if (d) {
+          obj[k] = formatDateForPostgresNoMs(d);
+          return;
+        }
+      }
+      if (typeof val === 'object') sanitizeToPostgresDates(val);
+    });
+  };
+
+  const payload = JSON.parse(JSON.stringify(this.sabaticoData));
+  sanitizeToPostgresDates(payload);
+
+  this.sabaticosCrudService.put(endpoint, payload)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.loaderService.hide())
+    )
+    .subscribe({
+      next: () => {
+        this.popUpManager.showSuccessAlert(
+          this.translate.instant(
+            'HISTORIAL_SABATICOS.edit.saveObservacionesSuccess'
+          )
+        );
+        this.loadHistorialEstadoSabatico(this.sabaticoId);
+      },
+      error: (error) => {
+        console.error(error);
+        this.popUpManager.showErrorAlert(
+          this.translate.instant(
+            'HISTORIAL_SABATICOS.edit.saveObservacionesError'
+          )
+        );
+      }
+    });
+}
+
+async onEnviarRevisionDocente(): Promise<void> {
+  const isDocenteReady = this.canDisabledEnviar;
+  const isSecretariaReady = this.canEnviarRevisionSecretariaEnabled;
+
+  if (!isDocenteReady && !isSecretariaReady) {
     return;
   }
 
@@ -591,6 +869,142 @@ async onEnviarRevision(): Promise<void> {
   }
 }
 
+async onEnviarRevisionSecretaria(): Promise<void> {
+
+  const title = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.sendConfirmTitle'
+  );
+  const text = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.sendConfirmText'
+  );
+
+  const result = await this.popUpManager.showConfirmAlert(
+    text,
+    title
+  );
+
+  if (!result?.isConfirmed) {
+    return;
+  }
+
+  const endpoint = `sabatico/plan_trabajo/estado`;
+
+  const data = {
+    TerceroId: Number(this.terceroId),
+    SabaticoId: Number(this.sabaticoId),
+    Justificacion: 'Socializacion del Producto Pendiente',
+    EstadoSabatico: 'ES3',
+    EstadoSoporteSabatico: 'S2',
+  };
+
+  this.loaderService.show();
+
+  // Si hay cambios (descripción o documentos nuevos), guardar primero
+  if (this.canDisabledGuardar) {
+    this.onGuardarPlanTrabajo(false)
+      ?.pipe(
+        switchMap(() =>
+          this.sabaticosMidService.post(
+            endpoint,
+            data
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response.Status === 200) {
+            this.popUpManager.showSuccessAlert(
+              this.translate.instant(
+                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
+              )
+            );
+            this.router.navigate(['']);
+          }
+        },
+        error: (error) => {
+          console.error(error);
+        }
+      });
+  } else {
+    // Sin cambios, ir directo al cambio de estado
+    this.sabaticosMidService.post(endpoint, data)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response.Status === 200) {
+            this.popUpManager.showSuccessAlert(
+              this.translate.instant(
+                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
+              )
+              
+            );
+            this.router.navigate(['']);
+          }
+        },
+        error: (error) => {
+          console.error(error);
+        }
+      });
+  }
+}
+
+async onSubsanarPlanTrabajo(): Promise<void> {
+
+  const title = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.subsanarConfirmTitle'
+  );
+  const text = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.subsanarConfirmText'
+  );
+
+  const result = await this.popUpManager.showConfirmAlert(
+    text,
+    title
+  );
+
+  if (!result?.isConfirmed) {
+    return;
+  }
+
+  const endpoint = `sabatico/plan_trabajo/estado`;
+
+  const data = {
+    TerceroId: Number(this.terceroId),
+    SabaticoId: Number(this.sabaticoId),
+    Justificacion: 'Subsanación del Plan de Trabajo',
+    EstadoSabatico: 'ES4',
+    EstadoSoporteSabatico: 'S0',
+  };
+
+  this.loaderService.show();
+
+  this.sabaticosMidService.post(endpoint, data)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.loaderService.hide())
+    )
+    .subscribe({
+      next: (response: any) => {
+        if (response.Status === 200) {
+            this.popUpManager.showSuccessAlert(
+              this.translate.instant(
+                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
+              )
+            );
+            this.router.navigate(['']);
+        }
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
+}
+
   constructor(
     private fb: FormBuilder,
     private destroyRef: DestroyRef,
@@ -600,7 +1014,8 @@ async onEnviarRevision(): Promise<void> {
     private readonly gestorDocumentalService: GestorDocumentalService,
     private sabaticosMidService: SabaticosMidService,
     private readonly loaderService: LoaderService,
-    private readonly popUpManager: PopUpManager
+    private readonly popUpManager: PopUpManager,
+    private readonly router: Router
   ) {
     this.translate.setDefaultLang('es');
     this.translate.use('es');
@@ -610,6 +1025,9 @@ async onEnviarRevision(): Promise<void> {
     this.terceroId = localStorage.getItem('tercero') || '';
     this.sabaticoId = localStorage.getItem('SabaticoId') || '';
 
+    // Inicializar estado del control de observaciones según rol
+    this.toggleObservacionesSecretaria();
+
     this.loaderService.show();
     this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
       .pipe(finalize(() => this.loaderService.hide()))
@@ -618,6 +1036,8 @@ async onEnviarRevision(): Promise<void> {
         this.loadHistorialEstadoSabatico(this.sabaticoId);
         this.loadPlanDeTrabajo(this.sabaticoId);
         this.loadSoportesSabatico(this.sabaticoId);
+        
+       
       });
   }
 
@@ -629,6 +1049,17 @@ async onEnviarRevision(): Promise<void> {
   private buildForm(): FormGroup {
     return this.fb.group({
       descripcion_plan_trabajo: ['', Validators.required],
+      observacionesSecretaria: [''],
+    });
+  }
+
+  private loadSabaticoData(): void {
+    this.sabaticoData = this.historialSabaticoData.SabaticoId || null;
+    console.log(this.sabaticoData)
+    const observacionesInicial = this.sabaticoData.Observaciones || '';
+    this.originalObservacionesSecretaria = observacionesInicial;
+    this.form.patchValue({
+      observacionesSecretaria: observacionesInicial
     });
   }
 
@@ -660,9 +1091,8 @@ async onEnviarRevision(): Promise<void> {
                 item.DocumentoId ??
                 crypto.randomUUID()
               );
-
               const documentoId =
-                documento?.Id ?? item.DocumentoId ?? null;
+                documento?.Id ?? item.DocumentoId?.Id ?? null;
 
               const soporteId =
                 item.Id ?? item.DocumentoId ?? null;
@@ -676,6 +1106,8 @@ async onEnviarRevision(): Promise<void> {
 
               this.documentoBackendIds[key] =
                 documentoId;
+              
+              const estadoSoporte = item.EstadoSoporteSabatico?.NombreEstado || null;
 
               return {
                 key,
@@ -691,6 +1123,7 @@ async onEnviarRevision(): Promise<void> {
                 documentoId,
                 archivo: null,
                 remoteUrl,
+                estadoSoporte,
                 remoteName:
                   documento?.Nombre ??
                   item.FileName ??
@@ -709,7 +1142,7 @@ async onEnviarRevision(): Promise<void> {
 
   private loadHistorialEstadoSabatico(id: string): void {
     this.loaderService.show();
-    const endpoint = `historial_estado_sabatico?query=TerceroId:${this.terceroId},SabaticoId.Id:${id},Activo:True`;
+    const endpoint = `historial_estado_sabatico?query=SabaticoId.Id:${id},Activo:True`;
 
     this.sabaticosCrudService.get(endpoint)
       .pipe(
@@ -718,9 +1151,10 @@ async onEnviarRevision(): Promise<void> {
       )
       .subscribe((response: any) => {
         const data = response?.Data[0] ?? response ?? [];
-        this.sabaticoData = data;
+        this.historialSabaticoData = data;
         // Actualizar estado del control de descripción basado en el estado del sabatico
         this.togglePlanTrabajo();
+        this.loadSabaticoData();
       });
   }
 
@@ -728,7 +1162,7 @@ async onEnviarRevision(): Promise<void> {
     this.loaderService.show();
 
     const endpoint =
-      `historial_estado_sabatico?query=TerceroId:${this.terceroId},SabaticoId.Id:${id},EstadoSabaticoId.CodigoAbreviacion:ES1`;
+      `historial_estado_sabatico?query=SabaticoId.Id:${id},EstadoSabaticoId.CodigoAbreviacion:ES1`;
 
     this.sabaticosCrudService.get(endpoint)
       .pipe(
@@ -760,10 +1194,23 @@ async onEnviarRevision(): Promise<void> {
 
     if (!control) return;
 
-    if (!this.canEditarPlanTrabajo) {
+    if (!this.canEditarPlanTrabajoDocente) {
       control.disable();
     } else {
       control.enable();
+    }
+    // actualizar disponibilidad del campo de observaciones
+    this.toggleObservacionesSecretaria();
+  }
+
+  private toggleObservacionesSecretaria(): void {
+    const control = this.form.get('observacionesSecretaria');
+    if (!control) return;
+
+    if (this.isSecretariaAcademica) {
+      control.enable();
+    } else {
+      control.disable();
     }
   }
 

@@ -11,27 +11,11 @@
   </mat-card-header>
 
   <mat-card-content>
-    
-    <div *ngIf="cargandoHistorialSabaticos" class="historial-sabaticos__loading">
-      <mat-spinner diameter="40"></mat-spinner>
-      <span>{{ 'HISTORIAL_SABATICOS.cargandoHistorial' | translate }}</span>
-    </div>
 
     <div *ngIf="!cargandoHistorialSabaticos && historialEstadoSabaticos.length === 0" class="historial-sabaticos__empty">
       <mat-icon>inbox</mat-icon>
       <span>{{ 'HISTORIAL_SABATICOS.sinHistorial' | translate }}</span>
     </div>
-
-    <!-- <div class="historial-sabaticos__toolbar">
-      <div class="historial-sabaticos__toolbar-text">
-        <mat-card-title>
-          {{ 'HISTORIAL_SABATICOS.tableSection.title' | translate }}
-        </mat-card-title>
-        <mat-card-subtitle>
-          {{ 'HISTORIAL_SABATICOS.tableSection.subtitle' | translate }}
-        </mat-card-subtitle>
-      </div>
-    </div> -->
 
     <div class="historial-sabaticos__tabla-wrapper">
 
@@ -172,7 +156,7 @@
       </table>
     </div>
   </mat-card-content>
-
+  
   <mat-card-actions class="historial-sabaticos__paginador">
     <mat-paginator [length]="filteredSabaticos.length" [pageIndex]="pageIndex" [pageSize]="pageSize"
       [pageSizeOptions]="pageSizeOptions" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>

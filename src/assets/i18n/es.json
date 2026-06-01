@@ -7,7 +7,9 @@
     "atencion": "Atención",
     "cargando": "Cargando...",
     "error": "Error",
-    "operacion_exitosa": "Operación exitosa"
+    "operacion_exitosa": "Operación exitosa",
+    "aprobado" : "Aprobado",
+    "rechazado" : "Rechazado"
   },
   "HISTORIAL_SABATICOS": {
     "cargandoHistorial": "Cargando historial de sabáticos...",
@@ -15,6 +17,10 @@
     "title": "Sabáticos",
     "description": "Historial de sabáticos registrados en el sistema",
     "tableAriaLabel": "Tabla de historial de sabáticos",
+    "secretaria": {
+      "title": "Gestión Secretaria",
+      "observaciones": "Observaciones Secretaria"
+    },
     "columns": {
       "id": "ID",
       "fechaInicio": "Fecha de inicio",
@@ -24,7 +30,8 @@
       "gestion": "Gestión"
     },
     "roleInfo": {
-      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión."
+      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión.",
+      "secretariaAcademica": "En este módulo la secretaria académica podrá revisar los planes de trabajo de los sabáticos, aprobando o Subsanando el plan de trabajo y notificando al docente sobre el avance del plan de trabajo"
     },
     "filters": {
       "id": "Filtrar por ID",
@@ -52,6 +59,16 @@
       "enviar_revision": "Enviar a revisión",
       "cargar_pdf": "Cargar PDF",
       "save": "Guardar cambios",
+      "subsanar" : "Subsanar",
+      "subsanarConfirmTitle": "¿Enviar a subsanación?",
+      "subsanarConfirmText": "¿Estás seguro/a de que deseas enviar este plan de trabajo a subsanación?",
+      "messageEnviarRevision": "La revisión se envió correctamente.",
+      "approveSuccess": "Soporte aprobado correctamente.",
+      "rejectSuccess": "Soporte rechazado correctamente.",
+      "approveConfirmTitle": "Confirmar aprobación",
+      "approveConfirmText": "¿Está seguro/a de que desea aprobar este documento?",
+      "rechazarConfirmarTtitle": "Confirmar rechazo",
+      "rechazarConfirmarText": "¿Está seguro/a de que desea rechazar este documento?",
       "roleInfo": {
         "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo y enviándolas a revisión.",
         "secretaria": "En este módulo la secretaria podrá revisar los planes de trabajo de un sabático, aprobando o rechazando el plan de trabajo y notificando al docente sobre la decisión tomada."
