@@ -28,10 +28,9 @@ import {
   EstadoSoporteCodigo,
   Endpoints,
   FormDataKeys,
-  EstadoSoporteIdMap,
-  RoutePaths,
-  Messages,
+  Justificaciones,
 } from './formulario-plan-trabajo.constants';
+import { TercerosService } from '../../services/terceros.service';
 
 interface DocumentoDetalle {
   key: string;
@@ -73,8 +72,10 @@ export class FormularioPlanTrabajo {
    form: FormGroup;
    cargandoDocumentos = false;
    documentosSeleccionados: string[] = [];
-   documentosSeleccionadosDetalle: DocumentoDetalle[] = [];
+   documentosSeleccionadosDetalleDocente: DocumentoDetalle[] = [];
+   documentosSeleccionadosDetalleSecretaria: DocumentoDetalle[] = [];
    nombreDocumento = '';
+   nombreTercero = ""
    permisos: any[] = [];
    terceroId = '';
    sabaticoId = '';
@@ -107,63 +108,88 @@ export class FormularioPlanTrabajo {
   }
 
   get canEditarPlanTrabajoDocente(): boolean {
-    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
-    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
-      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
-      estado === EstadoSabaticoCode.ES4;
+    const estadoCorrecto = estado === EstadoSabaticoCode.EN_EJECUCION ||
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO;
     
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EditarPlanTrabajo) && estadoCorrecto;
   }
 
+  get canSubirDocumentosSecretaria(): boolean {
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA;
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
+    return tienePermiso && this.isSecretariaAcademica && estadoCorrecto;
+  }
+
   get canSaveObservacionesSecretaria(): boolean {
+
+    const permiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.GuardarPlanTrabajo) && this.isSecretariaAcademica;
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA;
     
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.GuardarPlanTrabajo) && this.isSecretariaAcademica;
+    return permiso && estadoCorrecto;
   }
 
   get canSubsanarSecretaria(): boolean {
 
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.SubsanarPlanTrabajo) && this.isSecretariaAcademica;
+    const permiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.SubsanarPlanTrabajo) && this.isSecretariaAcademica;
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA;
+
+    return permiso && estadoCorrecto;
   }
 
   get canEnviarRevisionDocente(): boolean {
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EnviarRevision);
     
-    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
-    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
-      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
-      estado === EstadoSabaticoCode.ES4;
+    const estadoCorrecto = estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.EN_EJECUCION;
     
     return tienePermiso && estadoCorrecto;
   }
 
   get canEnviarRevisionSecretaria(): boolean {
+
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA 
+
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EnviarRevision);
     
-    return tienePermiso && this.isSecretariaAcademica;
+    return tienePermiso && this.isSecretariaAcademica && estadoCorrecto;
   }
 
-    get CargarSoportes(): boolean {
+    get CargarSoportesDocente(): boolean {
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.CargarSoporte);
     
-    // Verificar que el estado sea CARGUE_PLAN_TRABAJO (ES1) o SUBSANACION (ES4)
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
-    const estadoCorrecto = estado === EstadoSabaticoCode.ES1 ||
-      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
-      estado === EstadoSabaticoCode.ES4;
+    const estadoCorrecto = estado === EstadoSabaticoCode.EN_EJECUCION ||
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO;
     
     return tienePermiso && estadoCorrecto && this.isDocente;
+  }
+
+    get CargarSoportesSecretaria(): boolean {
+    // Verificar permiso
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
+    
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA
+    
+    return tienePermiso && estadoCorrecto && this.isSecretariaAcademica;
   }
 
   get canAprobarRechazarSoportes(): boolean {
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
+    const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
+    const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA;
 
-    return tienePermiso && this.isSecretariaAcademica;
+    return tienePermiso && this.isSecretariaAcademica && estadoCorrecto;
   }
 
   get canDisabledEnviar(): boolean {
@@ -171,7 +197,7 @@ export class FormularioPlanTrabajo {
       this.form.get('descripcion_plan_trabajo')?.valid;
 
     const tieneDocumento =
-      this.documentosSeleccionadosDetalle.some(
+      this.documentosSeleccionadosDetalleDocente.some(
         doc => doc.archivo || doc.id != null || !!doc.remoteUrl
       );
 
@@ -187,11 +213,27 @@ export class FormularioPlanTrabajo {
     return value.trim().length > 0;
   }
 
-  get hasObservacionesCambiaron(): boolean {
+  get hasObservacionesSubsanar(): boolean {
     const control = this.form.get('observacionesSecretaria');
-    const currentValue = control?.value || '';
-    return currentValue !== this.originalObservacionesSecretaria;
+
+    return !!control?.value && control.value.trim().length > 0;
+
   }
+
+get hasObservacionesCambiaron(): boolean {
+  const control = this.form.get('observacionesSecretaria');
+  const currentValue = control?.value || '';
+
+  const observacionesCambiaron =
+    currentValue !== this.originalObservacionesSecretaria;
+
+  const tieneDocumentosNuevos =
+    this.documentosSeleccionadosDetalleSecretaria.some(
+      doc => !!doc.archivo
+    );
+
+  return observacionesCambiaron || tieneDocumentosNuevos;
+}
 
   get canDisabledGuardar(): boolean {
     const descripcionControl = this.form.get('descripcion_plan_trabajo');
@@ -201,7 +243,7 @@ export class FormularioPlanTrabajo {
       descripcionControl?.value !== this.originalDescripcionPlanTrabajo;
 
     const tieneDocumentoNuevo =
-      this.documentosSeleccionadosDetalle.some(
+      this.documentosSeleccionadosDetalleDocente.some(
         doc => doc.archivo
       );
 
@@ -209,8 +251,8 @@ export class FormularioPlanTrabajo {
   }
 
   get canEnviarRevisionSecretariaEnabled(): boolean {
-    const tieneDocumentos = this.documentosSeleccionadosDetalle.length > 0;
-    const todosAprobados = tieneDocumentos && this.documentosSeleccionadosDetalle.every(
+    const tieneDocumentos = this.documentosSeleccionadosDetalleDocente.length > 0;
+    const todosAprobados = tieneDocumentos && this.documentosSeleccionadosDetalleDocente.every(
       doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
     );
     return this.canEnviarRevisionSecretaria && todosAprobados;
@@ -218,19 +260,27 @@ export class FormularioPlanTrabajo {
 
   get isEstadoCarguePlanTrabajo(): boolean {
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
-    return estado === EstadoSabaticoCode.ES1 ||
-      estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
-      estado === EstadoSabaticoCode.ES4;
+    return estado === EstadoSabaticoCode.EN_EJECUCION ||
+      estado === EstadoSabaticoCode.SUBSANACION;
   }
 
   get isEstadoSubsanacion(): boolean {
-    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.ES4;
+    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.SUBSANACION;
+  }
+
+  get isEstadoRevisioSA(): boolean {
+    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.REVISION_SA;
+  }
+
+    get isEstadoSocializacion(): boolean {
+    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.SOCIALIZACION_PENDIENTE;
+  }
+
+    get isEstadoFinalizado(): boolean {
+    return this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion === EstadoSabaticoCode.FINALIZADO;
   }
 
   onAgregarDocumento(): void {
-    if (!this.canEditarPlanTrabajoDocente) {
-      return;
-    }
 
     const nombre = this.nombreDocumento.trim();
 
@@ -238,24 +288,32 @@ export class FormularioPlanTrabajo {
       return;
     }
 
-    const existe = this.documentosSeleccionadosDetalle.some(
+    const existe = this.documentosSeleccionadosDetalleDocente.some(
       doc => doc.label.toLowerCase() === nombre.toLowerCase()
     );
 
     if (existe) {
       return;
     }
-
-    this.documentosSeleccionadosDetalle.push({
+    if (this.rol === Role.SECRETARIA_ACADEMICA) {
+      this.documentosSeleccionadosDetalleSecretaria.push({
+        key: crypto.randomUUID(),
+        label: nombre,
+        archivo: null,
+      });
+    }else{
+      this.documentosSeleccionadosDetalleDocente.push({
       key: crypto.randomUUID(),
       label: nombre,
       archivo: null,
     });
+    }
 
     this.nombreDocumento = '';
   }
 
   onDocumentoChange(key: string, event: Event): void {
+    let documento
   const input = event.target as HTMLInputElement;
 
   if (!input.files?.length) {
@@ -263,10 +321,15 @@ export class FormularioPlanTrabajo {
   }
 
   const archivo = input.files[0];
-
-  const documento = this.documentosSeleccionadosDetalle.find(
+if(this.rol === Role.SECRETARIA_ACADEMICA){
+  documento = this.documentosSeleccionadosDetalleSecretaria.find(
     doc => doc.key === key
   );
+}else{
+  documento = this.documentosSeleccionadosDetalleDocente.find(
+    doc => doc.key === key
+  );}
+  
 
   if (documento) {
     documento.archivo = archivo;
@@ -285,7 +348,7 @@ export class FormularioPlanTrabajo {
 }
 
   async onAprobarSoporte(key: string): Promise<void> {
-    const documento = this.documentosSeleccionadosDetalle.find(
+    const documento = this.documentosSeleccionadosDetalleDocente.find(
       doc => doc.key === key
     );
 
@@ -309,7 +372,7 @@ export class FormularioPlanTrabajo {
   }
 
   async onRechazarSoporte(key: string): Promise<void> {
-    const documento = this.documentosSeleccionadosDetalle.find(
+    const documento = this.documentosSeleccionadosDetalleDocente.find(
       doc => doc.key === key
     );
 
@@ -332,15 +395,17 @@ export class FormularioPlanTrabajo {
     await this.updateEstadoSoporte(documento, 'RECHAZADO');
   }
 
+
+
   private async updateEstadoSoporte(documento: DocumentoDetalle, nuevoEstado: string): Promise<void> {
     this.loaderService.show();
 
     // Obtener el ID del estado según el nuevo estado
     let estadoSoporteId: number | null = null;
     if (nuevoEstado === EstadoSoporteNombre.APROBADO) {
-      estadoSoporteId = EstadoSoporteIdMap.APROBADO;
+      estadoSoporteId = await this.consultarEstadoSoporte(EstadoSoporteCodigo.APROBADO);
     } else if (nuevoEstado === EstadoSoporteNombre.RECHAZADO) {
-      estadoSoporteId = EstadoSoporteIdMap.RECHAZADO;
+      estadoSoporteId = await this.consultarEstadoSoporte(EstadoSoporteCodigo.RECHAZADO);
     }
 
     // Formatear fecha en formato PostgreSQL: YYYY-MM-DD HH:MM:SS.sss
@@ -383,14 +448,14 @@ export class FormularioPlanTrabajo {
       .subscribe({
         next: () => {
           // Actualizar el estado del documento en la lista
-          const index = this.documentosSeleccionadosDetalle.findIndex(
+          const index = this.documentosSeleccionadosDetalleDocente.findIndex(
             doc => doc.key === documento.key
           );
           if (index !== -1) {
-            this.documentosSeleccionadosDetalle[index].estadoSoporte = nuevoEstado;
+            this.documentosSeleccionadosDetalleDocente[index].estadoSoporte = nuevoEstado;
           }
 
-          const successMessage = nuevoEstado === 'APROBADO'
+          const successMessage = nuevoEstado === EstadoSoporteNombre.APROBADO
             ? 'HISTORIAL_SABATICOS.edit.approveSuccess'
             : 'HISTORIAL_SABATICOS.edit.rejectSuccess';
 
@@ -399,8 +464,7 @@ export class FormularioPlanTrabajo {
           );
         },
         error: (error) => {
-          console.error(error);
-          const errorMessage = nuevoEstado === 'APROBADO'
+          const errorMessage = nuevoEstado === EstadoSoporteNombre.APROBADO
             ? 'HISTORIAL_SABATICOS.edit.approveError'
             : 'HISTORIAL_SABATICOS.edit.rejectError';
 
@@ -412,9 +476,18 @@ export class FormularioPlanTrabajo {
   }
 
   async onEliminarDocumento(key: string): Promise<void> {
-    const documento = this.documentosSeleccionadosDetalle.find(
+    let documento
+
+    if(this.rol == Role.SECRETARIA_ACADEMICA){
+      documento = this.documentosSeleccionadosDetalleSecretaria.find(
+        doc => doc.key === key
+      );
+    }else{
+    documento = this.documentosSeleccionadosDetalleDocente.find(
       doc => doc.key === key
     );
+    }
+
 
     if (!documento) {
       return;
@@ -436,9 +509,19 @@ export class FormularioPlanTrabajo {
 
     if (documento.id) {
       this.loaderService.show();
-      const body = documento.rawData
-        ? { ...documento.rawData, Activo: false }
-        : { Id: documento.id, Activo: false };
+
+      const body = {
+      Id: documento.id,
+      DocumentoId: documento.rawData.Documento.Id,
+      Activo: false,
+      FechaCreacion: documento.rawData.Documento.FechaCreacion,
+      FechaModificacion: documento.rawData.Documento.FechaModificacion,
+      RolUsuario: documento.rawData?.RolUsuario || '',
+      SabaticoId: documento.rawData?.SabaticoId,
+      EstadoSoporteSabaticoId: {
+        Id: documento.rawData?.EstadoSoporteSabatico.Id,
+      }
+    };
 
       this.sabaticosCrudService.put('soporte_sabatico', body as any)
         .pipe(
@@ -455,7 +538,6 @@ export class FormularioPlanTrabajo {
             );
           },
           error: (error) => {
-            console.error(error);
             this.popUpManager.showErrorAlert(
               this.translate.instant(
                 'HISTORIAL_SABATICOS.edit.deleteError'
@@ -473,11 +555,17 @@ export class FormularioPlanTrabajo {
     if (this.documentoObjectUrls[key]) {
       URL.revokeObjectURL(this.documentoObjectUrls[key]);
     }
-
-    this.documentosSeleccionadosDetalle =
-      this.documentosSeleccionadosDetalle.filter(
+    if(this.rol == Role.SECRETARIA_ACADEMICA){
+      this.documentosSeleccionadosDetalleSecretaria =
+      this.documentosSeleccionadosDetalleSecretaria.filter(
         doc => doc.key !== key
       );
+    }else{
+    this.documentosSeleccionadosDetalleDocente =
+      this.documentosSeleccionadosDetalleDocente.filter(
+        doc => doc.key !== key
+      );
+    }
 
     delete this.documentoObjectUrls[key];
     delete this.documentoBackendIds[key];
@@ -490,10 +578,17 @@ export class FormularioPlanTrabajo {
   }
 
   onPrevisualizarDocumento(key: string): void {
-    const documento =
-      this.documentosSeleccionadosDetalle.find(
+    let documento
+    if(this.rol === Role.SECRETARIA_ACADEMICA){
+      documento = this.documentosSeleccionadosDetalleSecretaria.find(
         doc => doc.key === key
       );
+    }else{
+    documento =
+      this.documentosSeleccionadosDetalleDocente.find(
+        doc => doc.key === key
+      );
+      }
 
     if (!documento) {
       return;
@@ -587,11 +682,19 @@ export class FormularioPlanTrabajo {
   }
 
   async onGuardarDocumentos(): Promise<void> {
-
-    const documentosConArchivo =
-      this.documentosSeleccionadosDetalle.filter(
+    let documentosConArchivo
+    if(this.rol === Role.SECRETARIA_ACADEMICA){
+        documentosConArchivo =
+      this.documentosSeleccionadosDetalleSecretaria.filter(
         doc => doc.archivo
       );
+    }else{
+      documentosConArchivo =
+      this.documentosSeleccionadosDetalleDocente.filter(
+        doc => doc.archivo
+      );
+    }
+
 
     if (!documentosConArchivo.length) {
       return;
@@ -608,7 +711,7 @@ export class FormularioPlanTrabajo {
 
         formData.append(FormDataKeys.SabaticoId, String(Number(this.sabaticoId)));
         formData.append(FormDataKeys.RolUsuario, this.rol);
-        formData.append(FormDataKeys.EstadoSoporteSabatico, EstadoSoporteCodigo.S0);
+        formData.append(FormDataKeys.EstadoSoporteSabatico, EstadoSoporteCodigo.PENDIENTE_REVISION_SOPORTE);
         formData.append(FormDataKeys.Documentos, doc.archivo as File);
         formData.append(FormDataKeys.NombreArchivo, doc.label);
 
@@ -618,92 +721,75 @@ export class FormularioPlanTrabajo {
             formData
           )
         );
-
-        console.log(
-          `Documento ${doc.label} cargado`,
-          response
-        );
       }
-
-      console.log(
-        'Todos los documentos fueron cargados'
-      );
 
       // recargar soportes para evitar reintentar archivos ya subidos
       this.loadSoportesSabatico(this.sabaticoId);
 
     } catch (error: any) {
 
-      console.error(
-        'Error cargando documentos',
-        error
-      );
-
       throw error;
     }
   }
 
   onGuardarPlanTrabajo(executeSubscribe = true) {
+    if (!this.canDisabledGuardar) {
+      return;
+    }
 
-  if (!this.canDisabledGuardar) {
-    return;
-  }
+    const endpoint = `sabatico/plan_trabajo`;
 
-  const endpoint = `sabatico/plan_trabajo`;
+    const data = {
+      SabaticoId: Number(this.sabaticoId),
+      Justificacion:
+        this.form.get(
+          'descripcion_plan_trabajo'
+        )?.value,
+    };
 
-  const data = {
-    TerceroId: Number(this.terceroId),
-    SabaticoId: Number(this.sabaticoId),
-    Justificacion:
-      this.form.get(
-        'descripcion_plan_trabajo'
-      )?.value,
-  };
-
-  const request$ = this.sabaticosMidService
-    .post(endpoint, data)
-    .pipe(
-      switchMap(async (response: any) => {
-
-        if (response.Status === 200) {
-
-          // espera documentos
-          await this.onGuardarDocumentos();
-
-          // recarga info
-          this.loadHistorialEstadoSabatico(
-            this.sabaticoId
-          );
-
-          this.loadPlanDeTrabajo(
-            this.sabaticoId
-          );
-        }
-
-        return response;
-      })
-    );
-
-  // ejecución normal (botón guardar)
-  if (executeSubscribe) {
-    this.loaderService.show();
-
-    request$
+    const request$ = this.sabaticosMidService
+      .post(endpoint, data)
       .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loaderService.hide())
-      )
-      .subscribe({
-        next: () => {
-        },
-        error: (error) => {
-          console.error(error);
-        }
-      });
-  }
+        switchMap(async (response: any) => {
 
-  // retorna observable reutilizable
-  return request$;
+          if (response.Status === 200) {
+
+            // espera documentos
+            await this.onGuardarDocumentos();
+
+            // recarga info
+            this.loadHistorialEstadoSabatico(
+              this.sabaticoId
+            );
+
+            this.loadPlanDeTrabajo(
+              this.sabaticoId
+            );
+          }
+
+          return response;
+        })
+      );
+
+    // ejecución normal (botón guardar)
+    if (executeSubscribe) {
+      this.loaderService.show();
+
+      request$
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => this.loaderService.hide())
+        )
+        .subscribe({
+          next: () => {
+          },
+          error: (error) => {
+          }
+        });
+    }
+
+    // retorna observable reutilizable
+    return request$;
 }
 
 onGuardarObservacionesSecretaria(): void {
@@ -768,6 +854,7 @@ onGuardarObservacionesSecretaria(): void {
     )
     .subscribe({
       next: () => {
+        this.onGuardarDocumentos()
         this.popUpManager.showSuccessAlert(
           this.translate.instant(
             'HISTORIAL_SABATICOS.edit.saveObservacionesSuccess'
@@ -776,7 +863,6 @@ onGuardarObservacionesSecretaria(): void {
         this.loadHistorialEstadoSabatico(this.sabaticoId);
       },
       error: (error) => {
-        console.error(error);
         this.popUpManager.showErrorAlert(
           this.translate.instant(
             'HISTORIAL_SABATICOS.edit.saveObservacionesError'
@@ -813,11 +899,10 @@ async onEnviarRevisionDocente(): Promise<void> {
   const endpoint = `sabatico/plan_trabajo/estado`;
 
   const data = {
-    TerceroId: Number(this.terceroId),
     SabaticoId: Number(this.sabaticoId),
-    Justificacion: 'Enviar a revision SA',
-    EstadoSabatico: 'ES2',
-    EstadoSoporteSabatico: 'S1',
+    Justificacion: Justificaciones.RevisionEnviada,
+    EstadoSabatico: EstadoSabaticoCode.REVISION_SA,
+    EstadoSoporteSabatico: EstadoSoporteCodigo.REVISION_SA,
   };
 
   this.loaderService.show();
@@ -844,7 +929,6 @@ async onEnviarRevisionDocente(): Promise<void> {
           }
         },
         error: (error) => {
-          console.error(error);
         }
       });
   } else {
@@ -863,7 +947,6 @@ async onEnviarRevisionDocente(): Promise<void> {
           }
         },
         error: (error) => {
-          console.error(error);
         }
       });
   }
@@ -890,11 +973,10 @@ async onEnviarRevisionSecretaria(): Promise<void> {
   const endpoint = `sabatico/plan_trabajo/estado`;
 
   const data = {
-    TerceroId: Number(this.terceroId),
     SabaticoId: Number(this.sabaticoId),
-    Justificacion: 'Socializacion del Producto Pendiente',
-    EstadoSabatico: 'ES3',
-    EstadoSoporteSabatico: 'S2',
+    Justificacion: Justificaciones.SocializacionPendiente,
+    EstadoSabatico: EstadoSabaticoCode.SOCIALIZACION_PENDIENTE,
+    EstadoSoporteSabatico: EstadoSoporteCodigo.APROBADO,
   };
 
   this.loaderService.show();
@@ -924,7 +1006,6 @@ async onEnviarRevisionSecretaria(): Promise<void> {
           }
         },
         error: (error) => {
-          console.error(error);
         }
       });
   } else {
@@ -947,7 +1028,6 @@ async onEnviarRevisionSecretaria(): Promise<void> {
           }
         },
         error: (error) => {
-          console.error(error);
         }
       });
   }
@@ -974,11 +1054,10 @@ async onSubsanarPlanTrabajo(): Promise<void> {
   const endpoint = `sabatico/plan_trabajo/estado`;
 
   const data = {
-    TerceroId: Number(this.terceroId),
     SabaticoId: Number(this.sabaticoId),
-    Justificacion: 'Subsanación del Plan de Trabajo',
-    EstadoSabatico: 'ES4',
-    EstadoSoporteSabatico: 'S0',
+    Justificacion: Justificaciones.SubsanacionEnviada,
+    EstadoSabatico: EstadoSabaticoCode.SUBSANACION,
+    EstadoSoporteSabatico: EstadoSoporteCodigo.PENDIENTE_REVISION_SOPORTE,
   };
 
   this.loaderService.show();
@@ -1000,7 +1079,6 @@ async onSubsanarPlanTrabajo(): Promise<void> {
         }
       },
       error: (error) => {
-        console.error(error);
       }
     });
 }
@@ -1015,7 +1093,8 @@ async onSubsanarPlanTrabajo(): Promise<void> {
     private sabaticosMidService: SabaticosMidService,
     private readonly loaderService: LoaderService,
     private readonly popUpManager: PopUpManager,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly terceroCrudService : TercerosService
   ) {
     this.translate.setDefaultLang('es');
     this.translate.use('es');
@@ -1053,9 +1132,24 @@ async onSubsanarPlanTrabajo(): Promise<void> {
     });
   }
 
+  async consultarEstadoSoporte(CodigoAbreviacion: string): Promise<number | null> {
+  const endpoint = `estado_soporte_sabatico?query=CodigoAbreviacion:${CodigoAbreviacion}`;
+
+  this.loaderService.show();
+
+  try {
+    const response: any = await firstValueFrom(
+      this.sabaticosCrudService.get(endpoint)
+    );
+
+    return response?.Data?.[0]?.Id ?? null;
+  } finally {
+    this.loaderService.hide();
+  }
+}
+
   private loadSabaticoData(): void {
     this.sabaticoData = this.historialSabaticoData.SabaticoId || null;
-    console.log(this.sabaticoData)
     const observacionesInicial = this.sabaticoData.Observaciones || '';
     this.originalObservacionesSecretaria = observacionesInicial;
     this.form.patchValue({
@@ -1063,81 +1157,115 @@ async onSubsanarPlanTrabajo(): Promise<void> {
     });
   }
 
-  private loadSoportesSabatico(id: string): void {
-    this.loaderService.show();
+private loadSoportesSabatico(id: string): void {
+  this.loaderService.show();
 
-    const endpoint =
-      `soporte_sabatico/${id}`;
+  const endpoint = `soporte_sabatico/${id}`;
 
-    this.sabaticosMidService
-      .get(endpoint)
+  this.sabaticosMidService
+    .get(endpoint)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.loaderService.hide())
+    )
+    .subscribe({
+      next: (response: any) => {
+        const data = response?.Data ?? [];
+
+        const documentos = (Array.isArray(data) ? data : []).map(
+          (item: any, idx: number) => {
+            const documento = item.Documento ?? item;
+
+            const key = String(
+              item.Id ??
+              documento.Id ??
+              item.DocumentoId ??
+              crypto.randomUUID()
+            );
+
+            const documentoId =
+              documento?.Id ??
+              item.DocumentoId?.Id ??
+              null;
+
+            const soporteId =
+              item.Id ??
+              item.DocumentoId ??
+              null;
+
+            const remoteUrl =
+              documento?.Enlace ??
+              item.Url ??
+              item.DocumentoUrl ??
+              item.Enlace ??
+              null;
+
+            this.documentoBackendIds[key] = documentoId;
+
+            const estadoSoporte =
+              item.EstadoSoporteSabatico?.NombreEstado ?? null;
+
+            return {
+              key,
+              id: soporteId,
+              rawData: item,
+              label: String(
+                documento?.Nombre ??
+                item.Nombre ??
+                item.NombreDocumento ??
+                item.Label ??
+                `Documento ${idx + 1}`
+              ),
+              documentoId,
+              archivo: null,
+              remoteUrl,
+              estadoSoporte,
+              remoteName:
+                documento?.Nombre ??
+                item.FileName ??
+                item.Nombre ??
+                item.NombreDocumento ??
+                null,
+              isBackend: Boolean(
+                item.Documento ||
+                item.DocumentoId ||
+                item.Id
+              ),
+            };
+          }
+        );
+
+        // Separar por rol
+        this.documentosSeleccionadosDetalleDocente =
+          documentos.filter(
+            doc =>
+              doc.rawData?.RolUsuario === Role.DOCENTE
+          );
+
+        this.documentosSeleccionadosDetalleSecretaria =
+          documentos.filter(
+            doc =>
+              doc.rawData?.RolUsuario === Role.SECRETARIA_ACADEMICA
+          );
+      },
+
+      error: () => {}
+    });
+}
+
+  private loadNombreTerceroSabatico (terceroId: string){
+    this.loaderService.show()
+    const endpoint = "tercero/" + terceroId;
+
+    this.terceroCrudService.get(endpoint)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loaderService.hide())
       )
-      .subscribe({
-        next: (response: any) => {
+      .subscribe((response: any) => {
+        this.nombreTercero = response.NombreCompleto
+      })
 
-          const data = response?.Data ?? [];
-
-          this.documentosSeleccionadosDetalle =
-            (Array.isArray(data) ? data : [])
-            .map((item: any, idx: number) => {
-
-              const documento = item.Documento ?? item;
-              const key = String(
-                item.Id ??
-                documento.Id ??
-                item.DocumentoId ??
-                crypto.randomUUID()
-              );
-              const documentoId =
-                documento?.Id ?? item.DocumentoId?.Id ?? null;
-
-              const soporteId =
-                item.Id ?? item.DocumentoId ?? null;
-
-              const remoteUrl =
-                documento?.Enlace ??
-                item.Url ??
-                item.DocumentoUrl ??
-                item.Enlace ??
-                null;
-
-              this.documentoBackendIds[key] =
-                documentoId;
-              
-              const estadoSoporte = item.EstadoSoporteSabatico?.NombreEstado || null;
-
-              return {
-                key,
-                id: soporteId,
-                rawData: item,
-                label: String(
-                  documento?.Nombre ??
-                  item.Nombre ??
-                  item.NombreDocumento ??
-                  item.Label ??
-                  `Documento ${idx + 1}`
-                ),
-                documentoId,
-                archivo: null,
-                remoteUrl,
-                estadoSoporte,
-                remoteName:
-                  documento?.Nombre ??
-                  item.FileName ??
-                  item.Nombre ??
-                  item.NombreDocumento ??
-                  null,
-                isBackend: Boolean(item.Documento || item.DocumentoId || item.Id),
-              };
-            });
-        },
-
-        error: () => {
-        }
-      });
   }
 
   private loadHistorialEstadoSabatico(id: string): void {
@@ -1152,6 +1280,7 @@ async onSubsanarPlanTrabajo(): Promise<void> {
       .subscribe((response: any) => {
         const data = response?.Data[0] ?? response ?? [];
         this.historialSabaticoData = data;
+        this.loadNombreTerceroSabatico(this.historialSabaticoData.TerceroId)
         // Actualizar estado del control de descripción basado en el estado del sabatico
         this.togglePlanTrabajo();
         this.loadSabaticoData();
@@ -1162,7 +1291,7 @@ async onSubsanarPlanTrabajo(): Promise<void> {
     this.loaderService.show();
 
     const endpoint =
-      `historial_estado_sabatico?query=SabaticoId.Id:${id},EstadoSabaticoId.CodigoAbreviacion:ES1`;
+      `historial_estado_sabatico?query=SabaticoId.Id:${id},EstadoSabaticoId.CodigoAbreviacion:${EstadoSabaticoCode.CARGUE_PLAN_TRABAJO}`;
 
     this.sabaticosCrudService.get(endpoint)
       .pipe(
@@ -1174,10 +1303,6 @@ async onSubsanarPlanTrabajo(): Promise<void> {
         const data = response?.Data?.[0] ?? null;
 
         this.planTrabajoData = data;
-
-        console.log(
-          this.planTrabajoData?.Justificacion
-        );
 
         this.form.patchValue({
           descripcion_plan_trabajo:

@@ -13,11 +13,13 @@ export enum Permission {
 }
 
 export enum EstadoSabaticoCode {
-  ES1 = 'ES1',
-  CARGUE_PLAN_TRABAJO = 'CARGUE_PLAN_TRABAJO',
-  ES2 = 'ES2',
-  ES3 = 'ES3',
-  ES4 = 'ES4',
+  EN_EJECUCION = 'ES0',
+  CARGUE_PLAN_TRABAJO = 'ES1',
+  REVISION_SA = 'ES2',
+  SOCIALIZACION_PENDIENTE = 'ES3',
+  SUBSANACION = 'ES4',
+  FINALIZADO = 'ES5',
+  INCUMPLIMIENTO = 'ES6'
 }
 
 export enum EstadoSoporteNombre {
@@ -26,15 +28,11 @@ export enum EstadoSoporteNombre {
 }
 
 export enum EstadoSoporteCodigo {
-  S0 = 'S0',
-  S1 = 'S1',
-  S2 = 'S2',
+  PENDIENTE_REVISION_SOPORTE = 'S0',
+  REVISION_SA = 'S1',
+  APROBADO = 'S2',
+  RECHAZADO = 'S3',
 }
-
-export const EstadoSoporteIdMap = {
-  APROBADO: 3,
-  RECHAZADO: 4,
-} as const;
 
 export const Endpoints = {
   SoporteSabatico: 'soporte_sabatico',
@@ -51,10 +49,8 @@ export const FormDataKeys = {
   NombreArchivo: 'nombre_archivo',
 } as const;
 
-export const RoutePaths = {
-  SeguimientoSabaticos: '/seguimiento-sabaticos/',
-} as const;
-
-export const Messages = {
-  RevisionEnviada: 'La revisión se envió correctamente.',
+export const Justificaciones = {
+  RevisionEnviada: 'Enviar a revision SA',
+  SubsanacionEnviada: 'Subsanación del Plan de Trabajo',
+  SocializacionPendiente: 'Socializacion del Producto Pendiente',
 } as const;
