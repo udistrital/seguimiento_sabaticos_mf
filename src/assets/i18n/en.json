@@ -5,48 +5,61 @@
     "aceptar": "Accept",
     "cancelar": "Cancel",
     "atencion": "Attention",
+    "cargando": "Loading...",
     "error": "Error",
-    "operacion_exitosa": "Successful operation"
+    "operacion_exitosa": "Successful operation",
+    "operacion_fallida": "Operation failed",
+    "aprobado": "Approved",
+    "rechazado": "Rejected"
   },
   "HISTORIAL_SABATICOS": {
+    "actions": {
+      "editarReporteProducto": "Edit product report",
+      "crearSolicitudProducto": "Create product request",
+      "finalizarSabatico": "Complete sabbatical",
+      "marcarIncumplimiento": "Mark as non-compliance"
+    },
     "cargandoHistorial": "Loading sabbatical history...",
     "sinHistorial": "No sabbaticals registered",
     "title": "Sabbaticals",
     "description": "History of sabbaticals registered in the system",
     "tableAriaLabel": "Sabbatical history table",
-
+    "secretaria": {
+      "title": "Secretary management",
+      "observaciones": "Secretary observations"
+    },
     "columns": {
       "id": "ID",
       "fechaInicio": "Start date",
       "fechaFinal": "End date",
       "estadoSabatico": "Sabbatical status",
       "estadoSolicitud": "Request status",
+      "docenteNombre": "Teacher Name",
       "gestion": "Management"
     },
-
     "roleInfo": {
-      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review."
+      "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review.",
+      "secretariaAcademica": "In this module, the academic secretary will be able to review the sabbatical work plans, approving or amending the work plan and notifying the teacher about the progress of the work plan."
     },
-
     "filters": {
       "id": "Filter by ID",
       "fechaInicio": "Filter by start date",
-      "fechaFinal": "Filter by end date"
+      "fechaFinal": "Filter by end date",
+      "docenteNombre": "Filter by Teacher Name"
     },
-
     "tableSection": {
       "title": "Sabbatical History",
       "subtitle": "Section to view current sabbaticals"
     },
-
     "edit": {
+      "saveObservacionesSuccess": "The observations and documents from the Academic Secretary were saved successfully.",
+      "saveObservacionesError": "It was not possible to save the changes made by the Academic Secretary. Please try again.",
       "title": "Work Plan Upload Form",
       "subtitle": "Form to upload your sabbatical work plan",
-
       "plan_trabajo": "Work Plan",
       "descripcion_plan_trabajo": "Work plan description",
-
       "sectionDocumentos": "Supporting Documents",
+      "sectionDocumentosSecretaria": "Academic Secretary Supporting Documents",
       "documentos_pdf": "Only PDF files are allowed.",
       "nombre_documento": "Enter the document name",
       "deleteConfirmTitle": "Delete document?",
@@ -55,19 +68,31 @@
       "deleteError": "Could not delete the document.",
       "sendConfirmTitle": "Send for review?",
       "sendConfirmText": "Are you sure you want to send this work plan for review?",
-
       "enviar_revision": "Send for review",
+      "enviar_socializacion": "Send to socialization",
       "cargar_pdf": "Upload PDF",
-
+      "save": "Save changes",
+      "subsanar": "Request corrections",
+      "subsanarConfirmTitle": "Send for correction?",
+      "subsanarConfirmText": "Are you sure you want to send this work plan for correction?",
+      "messageEnviarRevision": "The review was sent successfully.",
+      "approveSuccess": "Document approved successfully.",
+      "rejectSuccess": "Document rejected successfully.",
+      "approveConfirmTitle": "Confirm approval",
+      "approveConfirmText": "Are you sure you want to approve this document?",
+      "rechazarConfirmarTtitle": "Confirm rejection",
+      "rechazarConfirmarText": "Are you sure you want to reject this document?",
+      "sendConfirmFinalizarTitle": "Complete sabbatical?",
+      "sendConfirmFinalizarText": "Are you sure you want to complete this sabbatical? This action cannot be undone.",
       "roleInfo": {
         "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan and sending it for review.",
         "secretaria": "In this module, the secretary will be able to review sabbatical work plans, approve or reject them, and notify the teacher about the decision made."
       },
-
       "columns": {
         "id": "ID",
         "fecha_inicio": "Start date",
         "fecha_final": "End date",
+        "nombre_docente": "Teacher Name",
         "estado": "Status"
       }
     }

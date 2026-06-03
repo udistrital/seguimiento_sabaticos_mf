@@ -8,8 +8,10 @@ import { ImplicitAutenticationService } from '../../services/implicit_authentica
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
+import { LoaderService } from '../../services/loader.service';
+import { PopUpManager } from '../../../managers/popUpManager';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSpinner } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -18,12 +20,17 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { TercerosService } from '../../services/terceros.service';
 import { RouterModule } from '@angular/router';
+import { SabaticosMidService } from '../../services/sabaticos-mid.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {EstadoSabaticoCode, EstadoSoporteCodigo} from '../formulario-plan-trabajo/formulario-plan-trabajo.constants';
 
 interface HistorialEstadoSabaticos {
   id: string;
   fechaInicio: string;
   fechaFinal: string;
   estadoSabatico: string;
+  estadoSabaticoCodigo?: string;
+  docenteNombre: string
 }
 
 interface ColumnFilters {
@@ -31,14 +38,15 @@ interface ColumnFilters {
   fechaInicio: string;
   fechaFinal: string;
   estadoSabatico: string;
+  docenteNombre: string;
 }
 
-type FilterColumn = 'id' | 'fechaInicio' | 'fechaFinal' | 'estadoSabatico';
+type FilterColumn = 'id' | 'fechaInicio' | 'fechaFinal' | 'estadoSabatico' | 'docenteNombre';
 
 @Component({
   selector: 'historial-sabaticos',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, MatSpinner, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, FormsModule, RouterModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, FormsModule, RouterModule,MatTooltipModule],
   templateUrl: './historial-sabaticos.html',
   styleUrl: './historial-sabaticos.scss',
 })
@@ -62,19 +70,15 @@ export class HistorialSabaticos {
   cargandoHistorialSabaticos = true;
   readonly pageSizeOptions = [5, 10, 25];
   filteredSabaticos: HistorialEstadoSabaticos[] = [];
-  readonly displayedColumns = ['id', 'fechaInicio', 'fechaFinal', 'estadoSabatico', 'gestion'];
+  displayedColumns = ['id', 'fechaInicio', 'fechaFinal', 'docente' ,'estadoSabatico' , 'gestion'];
   columnFilters: ColumnFilters = {
     id: '',
     fechaInicio: '',
     fechaFinal: '',
     estadoSabatico: '',
+    docenteNombre: '',
   };
   estadoOptions: string[] = [];
-  
-
-  get isSecretariaGeneral(): boolean {
-    return this.rol === 'SECRETARIA_GENERAL';
-  }
 
   get isDocente(): boolean {
     return this.rol === 'DOCENTE';
@@ -85,9 +89,6 @@ export class HistorialSabaticos {
   }
 
   get roleInfoMessageKey(): string {
-    if (this.isSecretariaGeneral) {
-      return 'HISTORIAL_SABATICOS.roleInfo.secretariaGeneral';
-    }
 
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SABATICOS.roleInfo.secretariaAcademica';
@@ -96,33 +97,47 @@ export class HistorialSabaticos {
     return 'HISTORIAL_SABATICOS.roleInfo.docente';
   }
 
-  get canCrearSolicitud(): boolean {
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Solicitud_Sabatico');
+  canCrearSolicitud(solicitud: HistorialEstadoSabaticos): boolean {
+    const enEstadoIncumplimiento = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.INCUMPLIMIENTO
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Solicitud_Sabatico') && enEstadoIncumplimiento;
   }
 
   get canEnviarSabaticos(): boolean {
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Sabatico');
   }
 
-  get canReporteProducto(): boolean {
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Reporte_Productos');
+  canReporteProducto(solicitud: HistorialEstadoSabaticos): boolean {
+    const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.EN_EJECUCION
+    const enEstadoIncumplimiento = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.INCUMPLIMIENTO
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Reporte_Productos')  && enEstadoIncumplimiento;
   }
 
+  canFinalizarSabatico(solicitud: HistorialEstadoSabaticos): boolean {
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Finalizar_Sabatico');
+    const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo === EstadoSabaticoCode.SOCIALIZACION_PENDIENTE
+    return tienePermiso && enEstadoSocializacionPendiente;
+  }
+
+    canIncumplimientoSabatico(solicitud: HistorialEstadoSabaticos): boolean {
+    const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Incumplimiento_Sabatico');
+    const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo === EstadoSabaticoCode.EN_EJECUCION
+    return tienePermiso && enEstadoSocializacionPendiente;
+  }
 
   get paginatedSabaticos(): HistorialEstadoSabaticos[] {
     const start = this.pageIndex * this.pageSize;
     return this.filteredSabaticos.slice(start, start + this.pageSize);
   }
 
-onFilterChange(column: FilterColumn, value: string | Date | null): void {
-  if (value instanceof Date) {
-    this.columnFilters[column] = this.formatDate(value);
-  } else {
-    this.columnFilters[column] = value ?? '';
-  }
+  onFilterChange(column: FilterColumn, value: string | Date | null): void {
+    if (value instanceof Date) {
+      this.columnFilters[column] = this.formatDate(value);
+    } else {
+      this.columnFilters[column] = value ?? '';
+    }
 
-  this.applyFilters();
-}
+    this.applyFilters();
+  }
 
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
@@ -137,11 +152,15 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
   
   constructor(
     private readonly destroyRef: DestroyRef,
+    private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService,
+    private readonly loaderService: LoaderService,
+    private readonly tercerosService: TercerosService,
     private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosCrudService: SabaticosCrudService,
+    private readonly sabaticoMidService: SabaticosMidService,
     private readonly autenticationService: ImplicitAutenticationService,
-    private readonly tercerosService: TercerosService
+    
   ) 
   { 
     this.translate.setDefaultLang('es');
@@ -156,17 +175,10 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
       this.permisos = response
     });
 
-
-
-    if(this.isDocente) {
-      this.autenticationService.getDocument().then((documento: any) => {
+    this.autenticationService.getDocument().then((documento: any) => {
       this.documento = String(documento ?? '');
-
       this.loadTerceroId();
-    });
-    }else {
-      console.log("Consulta y logica para secretaria academicca")
-    }
+    })
   }
 
   ngOnInit(): void {
@@ -174,15 +186,105 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
     });
   }
 
+    async onIncumpliminetoSabatico(sabaticoId: number): Promise<void> {
+    const title = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.sendConfirmIncumplimientoTitle'
+    );
+    const text = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.sendConfirmIncumplimientoText'
+    );
+
+    const result = await this.popUpManager.showConfirmAlert(
+      text,
+      title
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    const endpoint = `sabatico/plan_trabajo/estado`;
+
+      const data = {
+      SabaticoId: Number(sabaticoId),
+      Justificacion: 'Finalización del sabático',
+      EstadoSabatico: EstadoSabaticoCode.INCUMPLIMIENTO,
+      EstadoSoporteSabatico: EstadoSoporteCodigo.RECHAZADO,
+    };
+
+    this.loaderService.show();
+    this.sabaticoMidService.post(endpoint, data)
+      .pipe(finalize(() => this.loaderService.hide()))
+      .subscribe({
+        next: () => {
+          const successMessage = this.translate.instant('GLOBAL.operacion_exitosa');
+          this.popUpManager.showSuccessAlert(successMessage);
+          this.loadHistorialSabaticos();
+        },
+        error: (error) => {
+          const errorMessage = this.translate.instant('GLOBAL.operacion_fallida');
+          this.popUpManager.showErrorAlert(errorMessage);
+        }
+      });
+
+
+
+    }
+
+  async onFinalizarSabatico(sabaticoId: number): Promise<void> {
+    const title = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.sendConfirmFinalizarTitle'
+    );
+    const text = this.translate.instant(
+      'HISTORIAL_SABATICOS.edit.sendConfirmFinalizarText'
+    );
+
+    const result = await this.popUpManager.showConfirmAlert(
+      text,
+      title
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    const endpoint = `sabatico/plan_trabajo/estado`;
+
+      const data = {
+      SabaticoId: Number(sabaticoId),
+      Justificacion: 'Finalización del sabático',
+      EstadoSabatico: EstadoSabaticoCode.FINALIZADO,
+      EstadoSoporteSabatico: EstadoSoporteCodigo.APROBADO,
+    };
+
+    this.loaderService.show();
+    this.sabaticoMidService.post(endpoint, data)
+      .pipe(finalize(() => this.loaderService.hide()))
+      .subscribe({
+        next: () => {
+          const successMessage = this.translate.instant('GLOBAL.operacion_exitosa');
+          this.popUpManager.showSuccessAlert(successMessage);
+          this.loadHistorialSabaticos();
+        },
+        error: (error) => {
+          const errorMessage = this.translate.instant('GLOBAL.operacion_fallida');
+          this.popUpManager.showErrorAlert(errorMessage);
+        }
+      });
+
+
+
+    }
+
   private loadTerceroId(): void {
-    console.log('Documento:', this.documento);
     const endpoint = `datos_identificacion?query=Activo:true,Numero:${this.documento}&sortby=FechaCreacion&order=desc`;
-    this.tercerosService.get(endpoint).subscribe((response: any) => {
+    this.loaderService.show();
+    this.tercerosService.get(endpoint).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loaderService.hide())).subscribe((response: any) => {
       const data = response?.Data ?? response ?? [];
       if (Array.isArray(data) && data.length > 0) {
         const mapData = data[0]?.TerceroId ?? this.terceroId;
         this.terceroId = Number(mapData.Id);
-        console.log('TerceroId obtenido:', this.terceroId);
+        this.loadEstadosSabaticos();
         this.loadHistorialSabaticos();
       } else {
         console.warn('No se encontraron datos de identificación para el documento proporcionado.');
@@ -194,11 +296,30 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
 
 
   private loadHistorialSabaticos(): void {
-    this.cargandoHistorialSabaticos = true;
-    const endpoint = `historial_estado_sabatico?query=TerceroId:${this.terceroId},Activo:True&limit=-1`;
+    let endpoint = ""
+    let service : any
+    if (this.isDocente){
+      endpoint = `historial_estado_sabatico?query=TerceroId:${this.terceroId},Activo:True&limit=-1`;
+      const columnaELiminar = "docente";
+        this.displayedColumns = this.displayedColumns.filter(col => col !== columnaELiminar);
+      service = this.sabaticosCrudService;
+    }
 
-    this.sabaticosCrudService.get(endpoint)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    if (this.isSecretariaAcademica){
+      endpoint = `sabatico/sabaticos_secretaria/` + this.documento;
+      service = this.sabaticoMidService
+    }
+
+    if (!endpoint || !service) {
+    console.error('No se encontró endpoint o servicio para el rol');
+    return;
+  }
+
+    this.cargandoHistorialSabaticos = true;
+
+    this.loaderService.show();
+    service.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loaderService.hide()))
       .subscribe({
         next: (response: any) => {
           const data = response?.Data ?? response ?? [];
@@ -207,22 +328,30 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
           this.applyFilters();
           this.cargandoHistorialSabaticos = false;
         },
-        error: (error) => {
-          console.error('Error al cargar solicitudes del coordinador:', error);
+        error: (error:any) => {
           this.cargandoHistorialSabaticos = false;
         }
       });
   }
 
+  private loadEstadosSabaticos(): void {
+    const endpoint = `estado_sabatico?query=Activo:true&limit=-1`;
+    this.sabaticosCrudService.get(endpoint).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((response: any) => {
+      const data = response?.Data ?? response ?? [];
+      this.estadoOptions = Array.isArray(data) ? data.map((item: any) => item.NombreEstado) : [];
+    }, (error) => {
+    });
+  }
+
   private applyFilters(): void {
-    this.estadoOptions = [...new Set(this.historialEstadoSabaticos.map(x => x.estadoSabatico))];
     this.filteredSabaticos = this.historialEstadoSabaticos.filter((historial) => {
       const matchesId = this.matchesFilter(historial.id, this.columnFilters.id);
       const matchesFechaInicio = this.matchesDate(historial.fechaInicio, this.columnFilters.fechaInicio);
       const matchesFechaFinal = this.matchesDate(historial.fechaFinal, this.columnFilters.fechaFinal);
       const matchesEstado = this.matchesFilter(historial.estadoSabatico, this.columnFilters.estadoSabatico);
+      const matchDocenteNombre = this.matchesFilter(historial.docenteNombre, this.columnFilters.docenteNombre)
 
-      return matchesId && matchesFechaInicio && matchesFechaFinal && matchesEstado;
+      return matchesId && matchesFechaInicio && matchesFechaFinal && matchesEstado && matchDocenteNombre;
     });
     this.pageIndex = 0;
   }
@@ -244,6 +373,8 @@ onFilterChange(column: FilterColumn, value: string | Date | null): void {
         fechaInicio: this.formatApiDate(item.SabaticoId?.FechaInicio ) ?? '',
         fechaFinal: this.formatApiDate(item.SabaticoId?.FechaFin) ?? '',
         estadoSabatico: item.EstadoSabaticoId?.NombreEstado,
+        estadoSabaticoCodigo: item.EstadoSabaticoId?.CodigoAbreviacion,
+        docenteNombre: item.Tercero?.NombreCompleto
       };
     });
   }

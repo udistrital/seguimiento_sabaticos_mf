@@ -7,51 +7,83 @@
     "atencion": "Atención",
     "cargando": "Cargando...",
     "error": "Error",
-    "operacion_exitosa": "Operación exitosa"
+    "operacion_exitosa": "Operación exitosa",
+    "operacion_fallida": "Operación fallida",
+    "aprobado" : "Aprobado",
+    "rechazado" : "Rechazado"
   },
   "HISTORIAL_SABATICOS": {
+    "actions": {
+      "editarReporteProducto": "Editar reporte de producto",
+      "crearSolicitudProducto": "Crear solicitud de producto",
+      "finalizarSabatico": "Finalizar año sabático",
+      "marcarIncumplimiento": "Marcar como incumplimiento"
+    },
     "cargandoHistorial": "Cargando historial de sabáticos...",
     "sinHistorial": "No hay sabáticos registrados",
     "title": "Sabáticos",
     "description": "Historial de sabáticos registrados en el sistema",
     "tableAriaLabel": "Tabla de historial de sabáticos",
+    "secretaria": {
+      "title": "Gestión Secretaria",
+      "observaciones": "Observaciones Secretaria"
+    },
     "columns": {
       "id": "ID",
       "fechaInicio": "Fecha de inicio",
       "fechaFinal": "Fecha final",
       "estadoSabatico": "Estado sabático",
       "estadoSolicitud": "Estado de la solicitud",
+      "docenteNombre": "Nombre Docente",
       "gestion": "Gestión"
     },
     "roleInfo": {
-      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión."
+      "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión.",
+      "secretariaAcademica": "En este módulo la secretaria académica podrá revisar los planes de trabajo de los sabáticos, aprobando o Subsanando el plan de trabajo y notificando al docente sobre el avance del plan de trabajo"
     },
     "filters": {
       "id": "Filtrar por ID",
       "fechaInicio": "Filtrar por fecha de inicio",
-      "fechaFinal": "Filtrar por fecha final"
+      "fechaFinal": "Filtrar por fecha final",
+      "docenteNombre": "Filtrar por Nombre Docente"
     },
     "tableSection": {
       "title": "Historial Sabaticos",
       "subtitle": "Sección para visualizar las sabaticos en curso"
     },
     "edit": {
+      "saveObservacionesSuccess":"Las observaciones y los documentos de la Secretaría Académica se guardaron correctamente.",
+      "saveObservacionesError":"No fue posible guardar los cambios realizados por la Secretaría Académica. Intente nuevamente.",
       "title": "Formulario de carga de plan de trabajo",
       "subtitle": "formulario para cargar su plan de trabajo para el sabático", 
       "plan_trabajo": "Plan de trabajo",
       "descripcion_plan_trabajo": "Descripción del plan de trabajo",
       "sectionDocumentos": "Documentos de soporte",
+      "sectionDocumentosSecretaria":"Documentos de soporte Secretaria Academica",
       "documentos_pdf": "Solo se permiten archivos en formato PDF.",
       "nombre_documento": "Ingresa el nombre del documento",
       "deleteConfirmTitle": "¿Eliminar documento?",
       "deleteConfirmText": "¿Estás seguro de que deseas eliminar este documento?",
       "deleteSuccess": "Documento eliminado correctamente.",
       "deleteError": "No se pudo eliminar el documento.",
-      "sendConfirmTitle": "¿Enviar a revisión?",
-      "sendConfirmText": "¿Estás seguro de que deseas enviar este plan de trabajo a revisión?",
+      "sendConfirmTitle": "¿Enviar a socialización?",
+      "sendConfirmText": "¿Estás seguro de que deseas enviar este plan de trabajo a socialización?",
       "enviar_revision": "Enviar a revisión",
+      "enviar_socializacion":"Enviar a socialización",
       "cargar_pdf": "Cargar PDF",
       "save": "Guardar cambios",
+      "subsanar" : "Subsanar",
+      "subsanarConfirmTitle": "¿Enviar a subsanación?",
+      "subsanarConfirmText": "¿Estás seguro/a de que deseas enviar este plan de trabajo a subsanación?",
+      "messageEnviarRevision": "La revisión se envió correctamente.",
+      "approveSuccess": "Soporte aprobado correctamente.",
+      "rejectSuccess": "Soporte rechazado correctamente.",
+      "approveConfirmTitle": "Confirmar aprobación",
+      "approveConfirmText": "¿Está seguro/a de que desea aprobar este documento?",
+      "rechazarConfirmarTtitle": "Confirmar rechazo",
+      "rechazarConfirmarText": "¿Está seguro/a de que desea rechazar este documento?",
+      "sendConfirmFinalizarTitle": "¿Finalizar sabático?",
+      "sendConfirmFinalizarText": "¿Estás seguro de que deseas finalizar este sabático? Esta acción no se puede deshacer.",
       "roleInfo": {
         "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo y enviándolas a revisión.",
         "secretaria": "En este módulo la secretaria podrá revisar los planes de trabajo de un sabático, aprobando o rechazando el plan de trabajo y notificando al docente sobre la decisión tomada."
@@ -60,6 +92,7 @@
         "id": "ID",
         "fecha_inicio": "Fecha de inicio",
         "fecha_final": "Fecha final",
+        "nombre_docente":"Nombre Docente",
         "estado": "Estado"
       }
       

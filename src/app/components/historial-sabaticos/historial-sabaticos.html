@@ -11,27 +11,11 @@
   </mat-card-header>
 
   <mat-card-content>
-    
-    <div *ngIf="cargandoHistorialSabaticos" class="historial-sabaticos__loading">
-      <mat-spinner diameter="40"></mat-spinner>
-      <span>{{ 'HISTORIAL_SABATICOS.cargandoHistorial' | translate }}</span>
-    </div>
 
     <div *ngIf="!cargandoHistorialSabaticos && historialEstadoSabaticos.length === 0" class="historial-sabaticos__empty">
       <mat-icon>inbox</mat-icon>
       <span>{{ 'HISTORIAL_SABATICOS.sinHistorial' | translate }}</span>
     </div>
-
-    <!-- <div class="historial-sabaticos__toolbar">
-      <div class="historial-sabaticos__toolbar-text">
-        <mat-card-title>
-          {{ 'HISTORIAL_SABATICOS.tableSection.title' | translate }}
-        </mat-card-title>
-        <mat-card-subtitle>
-          {{ 'HISTORIAL_SABATICOS.tableSection.subtitle' | translate }}
-        </mat-card-subtitle>
-      </div>
-    </div> -->
 
     <div class="historial-sabaticos__tabla-wrapper">
 
@@ -111,6 +95,28 @@
 
         </ng-container>
 
+        <ng-container matColumnDef="docente">
+
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-sabaticos__header-cell">
+              <span>{{ 'HISTORIAL_SABATICOS.columns.docenteNombre' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-sabaticos__filter">
+                <input matInput [placeholder]="'HISTORIAL_SABATICOS.filters.docenteNombre' | translate"
+                  [value]="columnFilters.docenteNombre"
+                  (input)="onFilterChange('docenteNombre', $any($event.target).value)"  />
+              </mat-form-field>
+            </div>
+          </th>
+
+          <td mat-cell *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SABATICOS.columns.fechaFinal' | translate">
+            {{ solicitud.docenteNombre }}
+          </td>
+
+        </ng-container>
+
+        
+
         <ng-container matColumnDef="estadoSabatico">
 
           <th mat-header-cell *matHeaderCellDef>
@@ -149,19 +155,42 @@
 
           <td mat-cell *matCellDef="let solicitud" class="historial-sabaticos__acciones"
             [attr.data-label]="'HISTORIAL_SABATICOS.columns.gestion' | translate">
-            <button mat-icon-button class="historial-sabaticos__accion historial-sabaticos__accion--view"
-              type="button" [attr.aria-label]="'HISTORIAL_SABATICOS.actions.viewAria' | translate" *ngIf="canReporteProducto" [routerLink]="['/formulario-plan-trabajo']" (click)="onViewPlanTrabajo(solicitud.id)">
+            <button
+              class="historial-sabaticos__accion historial-sabaticos__accion--view"
+              mat-icon-button
+              [matTooltip]="'HISTORIAL_SABATICOS.actions.editarReporteProducto' | translate"
+              *ngIf="canReporteProducto(solicitud)"
+              [routerLink]="['/formulario-plan-trabajo']"
+              (click)="onViewPlanTrabajo(solicitud.id)">
               <mat-icon>edit</mat-icon>
             </button>
 
-            <button mat-icon-button class="historial-sabaticos__accion historial-sabaticos__accion--view"
-              type="button" [attr.aria-label]="'HISTORIAL_SABATICOS.actions.viewAria' | translate" *ngIf="canCrearSolicitud" [routerLink]="['/crear']" [state]="{ sabatico: solicitud }">
+            <button
+              class="historial-sabaticos__accion historial-sabaticos__accion--view"
+              mat-icon-button
+              [matTooltip]="'HISTORIAL_SABATICOS.actions.crearSolicitudProducto' | translate"
+              *ngIf="canCrearSolicitud(solicitud)"
+              [routerLink]="['/crear']"
+              [state]="{ sabatico: solicitud }">
               <mat-icon>build</mat-icon>
             </button>
 
-            <button mat-icon-button class="historial-sabaticos__accion historial-sabaticos__accion--view"
-              type="button" [attr.aria-label]="'HISTORIAL_SABATICOS.actions.viewAria' | translate" *ngIf="canEnviarSabaticos">
-              <mat-icon>send</mat-icon>
+            <button
+              class="historial-sabaticos__accion historial-sabaticos__accion--view"
+              mat-icon-button
+              [matTooltip]="'HISTORIAL_SABATICOS.actions.finalizarSabatico' | translate"
+              *ngIf="canFinalizarSabatico(solicitud)"
+              (click)="onFinalizarSabatico(solicitud.id)">
+              <mat-icon>task_alt</mat-icon>
+            </button>
+
+            <button
+              class="historial-sabaticos__accion historial-sabaticos__accion--view"
+              mat-icon-button
+              [matTooltip]="'HISTORIAL_SABATICOS.actions.marcarIncumplimiento' | translate"
+              *ngIf="canIncumplimientoSabatico(solicitud)"
+              (click)="onIncumpliminetoSabatico(solicitud.id)">
+              <mat-icon>block</mat-icon>
             </button>
           </td>
         </ng-container>
@@ -172,7 +201,7 @@
       </table>
     </div>
   </mat-card-content>
-
+  
   <mat-card-actions class="historial-sabaticos__paginador">
     <mat-paginator [length]="filteredSabaticos.length" [pageIndex]="pageIndex" [pageSize]="pageSize"
       [pageSizeOptions]="pageSizeOptions" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>

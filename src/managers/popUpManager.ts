@@ -122,6 +122,23 @@ export class PopUpManager {
     });
   }
 
+  showLoading(title?: string): void {
+    Swal.fire({
+      title: title ? this.translate.instant(title) : undefined,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        // @ts-ignore
+        Swal.showLoading();
+      },
+      customClass: this.sweetAlertCustomClass,
+    });
+  }
+
+  hideLoading(): void {
+    Swal.close();
+  }
+
   // public showManyPopUp(title: string, steps: any[], type: any) {
   //   const opts = steps.map(step => {
   //     return {
