@@ -416,6 +416,7 @@ export class CrearSolicitud {
       formData.append('rol_usuario', 'DOCENTE');
       formData.append('estado_soporte_solicitud', 'PEN');
       formData.append('documentos', documento.archivo);
+      formData.append('nombre_archivo', documento.label);
 
       try {
         await firstValueFrom(this.sabaticosMidService.subirSoporteSolicitud(formData));
