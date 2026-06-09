@@ -142,7 +142,9 @@
 
           <td mat-cell *matCellDef="let solicitud"
             [attr.data-label]="'HISTORIAL_SABATICOS.columns.estadoSabatico' | translate">
-            {{ solicitud.estadoSabatico }}
+              <span [ngClass]="['estado', getEstadoClass(solicitud)]">
+                {{ solicitud.estadoSabatico }}
+            </span>
           </td>
 
         </ng-container>

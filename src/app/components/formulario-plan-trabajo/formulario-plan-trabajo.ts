@@ -578,21 +578,17 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
   }
 
   onPrevisualizarDocumento(key: string): void {
-    let documento
-    if(this.rol === Role.SECRETARIA_ACADEMICA){
-      documento = this.documentosSeleccionadosDetalleSecretaria.find(
-        doc => doc.key === key
-      );
-    }else{
-    documento =
-      this.documentosSeleccionadosDetalleDocente.find(
-        doc => doc.key === key
-      );
-      }
+  const documento =
+    this.documentosSeleccionadosDetalleDocente.find(
+      doc => doc.key === key
+    ) ||
+    this.documentosSeleccionadosDetalleSecretaria.find(
+      doc => doc.key === key
+    );
 
-    if (!documento) {
-      return;
-    }
+  if (!documento) {
+    return;
+  }
 
     // archivo local cargado por usuario
     if (documento.archivo) {
