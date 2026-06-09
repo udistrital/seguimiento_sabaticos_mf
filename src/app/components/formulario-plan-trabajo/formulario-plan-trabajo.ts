@@ -110,7 +110,7 @@ export class FormularioPlanTrabajo {
   get canEditarPlanTrabajoDocente(): boolean {
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.EN_EJECUCION ||
-      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO;
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO || estado === EstadoSabaticoCode.INCUMPLIMIENTO ;
     
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EditarPlanTrabajo) && estadoCorrecto;
   }
@@ -146,7 +146,7 @@ export class FormularioPlanTrabajo {
     
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO ||
-      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.EN_EJECUCION;
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.EN_EJECUCION || estado === EstadoSabaticoCode.INCUMPLIMIENTO;
     
     return tienePermiso && estadoCorrecto;
   }
@@ -168,7 +168,7 @@ export class FormularioPlanTrabajo {
     
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.EN_EJECUCION ||
-      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO;
+      estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO|| estado === EstadoSabaticoCode.INCUMPLIMIENTO;
     
     return tienePermiso && estadoCorrecto && this.isDocente;
   }
