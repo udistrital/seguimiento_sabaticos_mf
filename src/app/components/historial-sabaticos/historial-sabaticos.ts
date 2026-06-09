@@ -129,6 +129,25 @@ export class HistorialSabaticos {
     return this.filteredSabaticos.slice(start, start + this.pageSize);
   }
 
+  getEstadoClass(solicitud: HistorialEstadoSabaticos): string {
+    switch (solicitud.estadoSabaticoCodigo) {
+      case EstadoSabaticoCode.CARGUE_PLAN_TRABAJO:
+        return 'estado--cargue';
+      case EstadoSabaticoCode.REVISION_SA:
+        return 'estado--sa';
+      case EstadoSabaticoCode.SUBSANACION:
+        return 'estado--subsanacion';
+      case EstadoSabaticoCode.FINALIZADO:
+        return 'estado--aprobada';
+      case EstadoSabaticoCode.INCUMPLIMIENTO:
+        return 'estado--rechazada';
+      case EstadoSabaticoCode.SOCIALIZACION_PENDIENTE:
+        return 'estado-socializacion'
+      default:
+        return 'estado--borrador';
+    }
+  }
+
   onFilterChange(column: FilterColumn, value: string | Date | null): void {
     if (value instanceof Date) {
       this.columnFilters[column] = this.formatDate(value);
@@ -191,7 +210,7 @@ export class HistorialSabaticos {
       'HISTORIAL_SABATICOS.edit.sendConfirmIncumplimientoTitle'
     );
     const text = this.translate.instant(
-      'HISTORIAL_SABATICOS.edit.sendConfirmIncumplimientoText'
+      'HISTORIAL_SABATICOS.edit.sendConfirmIncumplimientoMessage'
     );
 
     const result = await this.popUpManager.showConfirmAlert(

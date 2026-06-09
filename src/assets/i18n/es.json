@@ -84,6 +84,8 @@
       "rechazarConfirmarText": "¿Está seguro/a de que desea rechazar este documento?",
       "sendConfirmFinalizarTitle": "¿Finalizar sabático?",
       "sendConfirmFinalizarText": "¿Estás seguro de que deseas finalizar este sabático? Esta acción no se puede deshacer.",
+      "sendConfirmIncumplimientoTitle":"¿Desea marcar este año sabático como incumplido?",
+      "sendConfirmIncumplimientoMessage": "El plazo establecido para la finalización del año sabático ha vencido. Al continuar, el estado del año sabático será actualizado a 'Incumplido'. Esta acción quedará registrada en el historial.",
       "roleInfo": {
         "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo y enviándolas a revisión.",
         "secretaria": "En este módulo la secretaria podrá revisar los planes de trabajo de un sabático, aprobando o rechazando el plan de trabajo y notificando al docente sobre la decisión tomada."
