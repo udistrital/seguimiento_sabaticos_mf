@@ -107,9 +107,7 @@ export class HistorialSabaticos {
   }
 
   canReporteProducto(solicitud: HistorialEstadoSabaticos): boolean {
-    const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.EN_EJECUCION
-    const enEstadoIncumplimiento = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.INCUMPLIMIENTO
-    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Reporte_Productos')  && enEstadoIncumplimiento;
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Reporte_Productos');
   }
 
   canFinalizarSabatico(solicitud: HistorialEstadoSabaticos): boolean {
