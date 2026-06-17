@@ -15,6 +15,7 @@
   "HISTORIAL_SABATICOS": {
     "actions": {
       "editarReporteProducto": "Editar reporte de producto",
+      "visualizarPlanTrabajo": "Ver plan de trabajo",
       "crearSolicitudProducto": "Crear solicitud de producto",
       "finalizarSabatico": "Finalizar año sabático",
       "marcarIncumplimiento": "Marcar como incumplimiento"
@@ -38,8 +39,19 @@
       "gestion": "Gestión"
     },
     "roleInfo": {
+      "adminConsulta": "Usuario de consulta: seleccione el rol operativo que desea visualizar. Los planes de trabajo se abrirán en modo solo lectura.",
       "docente": "En este módulo el docente podrá gestionar su sabático, cargando su plan de trabajo, realizando solicitudes y enviándolas a revisión.",
       "secretariaAcademica": "En este módulo la secretaria académica podrá revisar los planes de trabajo de los sabáticos, aprobando o Subsanando el plan de trabajo y notificando al docente sobre el avance del plan de trabajo"
+    },
+    "adminConsulta": {
+      "label": "Modo consulta ADMIN_SGA",
+      "selectLabel": "Rol a consultar",
+      "documentoDocente": "Cédula del docente",
+      "buscarDocente": "Buscar",
+      "roles": {
+        "docente": "Docente",
+        "secretariaAcademica": "Secretaría Académica"
+      }
     },
     "filters": {
       "id": "Filtrar por ID",
@@ -157,4 +169,3 @@
     }
   }
 }
-

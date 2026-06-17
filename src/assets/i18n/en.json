@@ -15,6 +15,7 @@
   "HISTORIAL_SABATICOS": {
     "actions": {
       "editarReporteProducto": "Edit product report",
+      "visualizarPlanTrabajo": "View work plan",
       "crearSolicitudProducto": "Create product request",
       "finalizarSabatico": "Complete sabbatical",
       "marcarIncumplimiento": "Mark as non-compliance"
@@ -38,8 +39,19 @@
       "gestion": "Management"
     },
     "roleInfo": {
+      "adminConsulta": "Consultation user: select the operational role you want to view. Work plans will open in read-only mode.",
       "docente": "In this module, the teacher will be able to manage their sabbatical by uploading their work plan, creating requests, and sending them for review.",
       "secretariaAcademica": "In this module, the academic secretary will be able to review the sabbatical work plans, approving or amending the work plan and notifying the teacher about the progress of the work plan."
+    },
+    "adminConsulta": {
+      "label": "ADMIN_SGA consultation mode",
+      "selectLabel": "Role to view",
+      "documentoDocente": "Teacher ID number",
+      "buscarDocente": "Search",
+      "roles": {
+        "docente": "Teacher",
+        "secretariaAcademica": "Academic Secretariat"
+      }
     },
     "filters": {
       "id": "Filter by ID",

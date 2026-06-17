@@ -69,6 +69,8 @@ interface DocumentoDetalle {
 export class FormularioPlanTrabajo {
 
    rol!: string;
+   rolReal = '';
+   isReadOnly = false;
    form: FormGroup;
    cargandoDocumentos = false;
    documentosSeleccionados: string[] = [];
@@ -100,6 +102,10 @@ export class FormularioPlanTrabajo {
   }
 
   get roleInfoMessageKey(): string {
+    if (this.isReadOnly) {
+      return 'HISTORIAL_SABATICOS.roleInfo.adminConsulta';
+    }
+
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SABATICOS.roleInfo.secretariaAcademica';
     }
@@ -108,6 +114,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canEditarPlanTrabajoDocente(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.EN_EJECUCION ||
       estado === EstadoSabaticoCode.SUBSANACION || estado === EstadoSabaticoCode.CARGUE_PLAN_TRABAJO || estado === EstadoSabaticoCode.INCUMPLIMIENTO ;
@@ -116,6 +125,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canSubirDocumentosSecretaria(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA;
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
@@ -123,6 +135,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canSaveObservacionesSecretaria(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
 
     const permiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.GuardarPlanTrabajo) && this.isSecretariaAcademica;
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
@@ -132,6 +147,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canSubsanarSecretaria(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
 
     const permiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.SubsanarPlanTrabajo) && this.isSecretariaAcademica;
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
@@ -141,6 +159,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canEnviarRevisionDocente(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.EnviarRevision);
     
@@ -152,6 +173,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canEnviarRevisionSecretaria(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
 
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
     const estadoCorrecto = estado === EstadoSabaticoCode.REVISION_SA 
@@ -163,6 +187,9 @@ export class FormularioPlanTrabajo {
   }
 
     get CargarSoportesDocente(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.CargarSoporte);
     
@@ -174,6 +201,9 @@ export class FormularioPlanTrabajo {
   }
 
     get CargarSoportesSecretaria(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
     
@@ -184,6 +214,9 @@ export class FormularioPlanTrabajo {
   }
 
   get canAprobarRechazarSoportes(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
     // Verificar permiso
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === Permission.AprobarRechazar);
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
@@ -281,6 +314,9 @@ get hasObservacionesCambiaron(): boolean {
   }
 
   onAgregarDocumento(): void {
+    if (this.isReadOnly) {
+      return;
+    }
 
     const nombre = this.nombreDocumento.trim();
 
@@ -313,6 +349,9 @@ get hasObservacionesCambiaron(): boolean {
   }
 
   onDocumentoChange(key: string, event: Event): void {
+    if (this.isReadOnly) {
+      return;
+    }
     let documento
   const input = event.target as HTMLInputElement;
 
@@ -348,6 +387,9 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
 }
 
   async onAprobarSoporte(key: string): Promise<void> {
+    if (this.isReadOnly) {
+      return;
+    }
     const documento = this.documentosSeleccionadosDetalleDocente.find(
       doc => doc.key === key
     );
@@ -372,6 +414,9 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
   }
 
   async onRechazarSoporte(key: string): Promise<void> {
+    if (this.isReadOnly) {
+      return;
+    }
     const documento = this.documentosSeleccionadosDetalleDocente.find(
       doc => doc.key === key
     );
@@ -476,6 +521,9 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
   }
 
   async onEliminarDocumento(key: string): Promise<void> {
+    if (this.isReadOnly) {
+      return;
+    }
     let documento
 
     if(this.rol == Role.SECRETARIA_ACADEMICA){
@@ -678,6 +726,10 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
   }
 
   async onGuardarDocumentos(): Promise<void> {
+    if (this.isReadOnly) {
+      return;
+    }
+
     let documentosConArchivo
     if(this.rol === Role.SECRETARIA_ACADEMICA){
         documentosConArchivo =
@@ -729,6 +781,10 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
   }
 
   onGuardarPlanTrabajo(executeSubscribe = true) {
+    if (this.isReadOnly) {
+      return;
+    }
+
     if (!this.canDisabledGuardar) {
       return;
     }
@@ -789,6 +845,9 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
 }
 
 onGuardarObservacionesSecretaria(): void {
+  if (this.isReadOnly) {
+    return;
+  }
   
   if (!this.canSaveObservacionesSecretaria) {
     return;
@@ -869,6 +928,10 @@ onGuardarObservacionesSecretaria(): void {
 }
 
 async onEnviarRevisionDocente(): Promise<void> {
+  if (this.isReadOnly) {
+    return;
+  }
+
   const isDocenteReady = this.canDisabledEnviar;
   const isSecretariaReady = this.canEnviarRevisionSecretariaEnabled;
 
@@ -949,6 +1012,9 @@ async onEnviarRevisionDocente(): Promise<void> {
 }
 
 async onEnviarRevisionSecretaria(): Promise<void> {
+  if (this.isReadOnly) {
+    return;
+  }
 
   const title = this.translate.instant(
     'HISTORIAL_SABATICOS.edit.sendConfirmTitle'
@@ -1030,6 +1096,9 @@ async onEnviarRevisionSecretaria(): Promise<void> {
 }
 
 async onSubsanarPlanTrabajo(): Promise<void> {
+  if (this.isReadOnly) {
+    return;
+  }
 
   const title = this.translate.instant(
     'HISTORIAL_SABATICOS.edit.subsanarConfirmTitle'
@@ -1097,6 +1166,8 @@ async onSubsanarPlanTrabajo(): Promise<void> {
 
     this.form = this.buildForm();
     this.rol = localStorage.getItem('rol') || '';
+    this.rolReal = localStorage.getItem('rolReal') || this.rol;
+    this.isReadOnly = localStorage.getItem('readOnly') === 'true';
     this.terceroId = localStorage.getItem('tercero') || '';
     this.sabaticoId = localStorage.getItem('SabaticoId') || '';
 
@@ -1328,7 +1399,7 @@ private loadSoportesSabatico(id: string): void {
     const control = this.form.get('observacionesSecretaria');
     if (!control) return;
 
-    if (this.isSecretariaAcademica) {
+    if (this.isSecretariaAcademica && !this.isReadOnly) {
       control.enable();
     } else {
       control.disable();

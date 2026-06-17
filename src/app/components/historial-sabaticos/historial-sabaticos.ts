@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { TercerosService } from '../../services/terceros.service';
 import { RouterModule } from '@angular/router';
@@ -24,13 +25,17 @@ import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {EstadoSabaticoCode, EstadoSoporteCodigo} from '../formulario-plan-trabajo/formulario-plan-trabajo.constants';
 
+type RolOperativo = 'DOCENTE' | 'SECRETARIA_ACADEMICA';
+type RolSistema = RolOperativo | 'ADMIN_SGA';
+
 interface HistorialEstadoSabaticos {
   id: string;
   fechaInicio: string;
   fechaFinal: string;
   estadoSabatico: string;
   estadoSabaticoCodigo?: string;
-  docenteNombre: string
+  docenteNombre: string;
+  terceroIdDocente?: number;
 }
 
 interface ColumnFilters {
@@ -46,7 +51,7 @@ type FilterColumn = 'id' | 'fechaInicio' | 'fechaFinal' | 'estadoSabatico' | 'do
 @Component({
   selector: 'historial-sabaticos',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, FormsModule, RouterModule,MatTooltipModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatTableModule, TranslateModule, MatPaginatorModule, TranslatePipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule, MatButtonModule, FormsModule, RouterModule,MatTooltipModule],
   templateUrl: './historial-sabaticos.html',
   styleUrl: './historial-sabaticos.scss',
 })
@@ -57,7 +62,18 @@ export class HistorialSabaticos {
   currentLang = 'es'; 
 
   //roles y permisos
-  rol!: string;
+  rol: RolOperativo = 'DOCENTE';
+  rolReal: RolSistema | '' = '';
+  rolConsulta: RolOperativo = 'SECRETARIA_ACADEMICA';
+  documentoDocenteConsulta = '';
+  readonly rolesConsultaOptions: RolOperativo[] = ['DOCENTE', 'SECRETARIA_ACADEMICA'];
+  readonly estadosConsultaSecretariaAcademica: string[] = [
+    EstadoSabaticoCode.REVISION_SA,
+    EstadoSabaticoCode.SOCIALIZACION_PENDIENTE,
+  ];
+  readonly estadosConsultaSecretariaAcademicaVencidos: string[] = [
+    EstadoSabaticoCode.EN_EJECUCION,
+  ];
   permisos: any[] = [];
   historialEstadoSabaticos: HistorialEstadoSabaticos[] = [];
   documento = '';
@@ -70,7 +86,9 @@ export class HistorialSabaticos {
   cargandoHistorialSabaticos = true;
   readonly pageSizeOptions = [5, 10, 25];
   filteredSabaticos: HistorialEstadoSabaticos[] = [];
-  displayedColumns = ['id', 'fechaInicio', 'fechaFinal', 'docente' ,'estadoSabatico' , 'gestion'];
+  readonly displayedColumnsDocente = ['id', 'fechaInicio', 'fechaFinal', 'estadoSabatico', 'gestion'];
+  readonly displayedColumnsConDocente = ['id', 'fechaInicio', 'fechaFinal', 'docente' ,'estadoSabatico' , 'gestion'];
+  displayedColumns = [...this.displayedColumnsConDocente];
   columnFilters: ColumnFilters = {
     id: '',
     fechaInicio: '',
@@ -88,7 +106,24 @@ export class HistorialSabaticos {
     return this.rol === 'SECRETARIA_ACADEMICA';
   }
 
+  get esModoConsultaAdmin(): boolean {
+    return this.rolReal === 'ADMIN_SGA';
+  }
+
+  get isConsultaDocenteAdmin(): boolean {
+    return this.esModoConsultaAdmin && this.isDocente;
+  }
+
+  get canBuscarDocenteConsulta(): boolean {
+    return this.isConsultaDocenteAdmin
+      && !this.cargandoHistorialSabaticos
+      && this.documentoDocenteConsulta.trim().length > 0;
+  }
+
   get roleInfoMessageKey(): string {
+    if (this.esModoConsultaAdmin) {
+      return 'HISTORIAL_SABATICOS.roleInfo.adminConsulta';
+    }
 
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SABATICOS.roleInfo.secretariaAcademica';
@@ -98,25 +133,45 @@ export class HistorialSabaticos {
   }
 
   canCrearSolicitud(solicitud: HistorialEstadoSabaticos): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     const enEstadoIncumplimiento = solicitud?.estadoSabaticoCodigo != EstadoSabaticoCode.INCUMPLIMIENTO
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Solicitud_Sabatico') && enEstadoIncumplimiento;
   }
 
   get canEnviarSabaticos(): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Sabatico');
   }
 
   canReporteProducto(solicitud: HistorialEstadoSabaticos): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Reporte_Productos');
   }
 
+  canVisualizarPlanTrabajo(_: HistorialEstadoSabaticos): boolean {
+    return this.esModoConsultaAdmin
+      && this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Visualizar_Plan_Trabajo');
+  }
+
   canFinalizarSabatico(solicitud: HistorialEstadoSabaticos): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Finalizar_Sabatico');
     const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo === EstadoSabaticoCode.SOCIALIZACION_PENDIENTE
     return tienePermiso && enEstadoSocializacionPendiente;
   }
 
     canIncumplimientoSabatico(solicitud: HistorialEstadoSabaticos): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     const tienePermiso = this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Incumplimiento_Sabatico');
     const enEstadoSocializacionPendiente = solicitud?.estadoSabaticoCodigo === EstadoSabaticoCode.EN_EJECUCION
     return tienePermiso && enEstadoSocializacionPendiente;
@@ -164,6 +219,8 @@ export class HistorialSabaticos {
   onViewPlanTrabajo(solicitudId: string): void {
     localStorage.setItem('SabaticoId', solicitudId);
     localStorage.setItem('rol', this.rol);
+    localStorage.setItem('rolReal', this.rolReal || this.rol);
+    localStorage.setItem('readOnly', String(this.esModoConsultaAdmin));
     localStorage.setItem('tercero', this.terceroId.toString());
   }
   
@@ -183,19 +240,21 @@ export class HistorialSabaticos {
     this.translate.setDefaultLang('es');
     this.translate.use('es');
 
-    // Obtener roles del usuario autenticado
-    let roles: any = this.autenticationService.getRole();
-    this.rol= roles.__zone_symbol__value.find((x: string) => ['DOCENTE', 'SECRETARIA_ACADEMICA'].includes(x));
-
-    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
-    .subscribe((response: any) => {
-      this.permisos = response
-    });
-
-    this.autenticationService.getDocument().then((documento: any) => {
+    Promise.all([
+      this.autenticationService.getRole(),
+      this.autenticationService.getDocument()
+    ]).then(([roles, documento]: [unknown, unknown]) => {
+      this.inicializarRol(roles);
+      this.cargarPermisosPorRol(this.rolReal || this.rol);
       this.documento = String(documento ?? '');
-      this.loadTerceroId();
-    })
+      this.loadEstadosSabaticos();
+
+      if (this.esModoConsultaAdmin) {
+        this.loadHistorialSabaticos();
+      } else {
+        this.loadTerceroId();
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -316,15 +375,27 @@ export class HistorialSabaticos {
     let endpoint = ""
     let service : any
     if (this.isDocente){
+      if (this.esModoConsultaAdmin && !this.terceroId) {
+        this.displayedColumns = [...this.displayedColumnsDocente];
+        this.historialEstadoSabaticos = [];
+        this.applyFilters();
+        this.cargandoHistorialSabaticos = false;
+        return;
+      }
+
       endpoint = `historial_estado_sabatico?query=TerceroId:${this.terceroId},Activo:True&limit=-1`;
-      const columnaELiminar = "docente";
-        this.displayedColumns = this.displayedColumns.filter(col => col !== columnaELiminar);
+      this.displayedColumns = [...this.displayedColumnsDocente];
       service = this.sabaticosCrudService;
     }
 
     if (this.isSecretariaAcademica){
-      endpoint = `sabatico/sabaticos_secretaria/` + this.documento;
-      service = this.sabaticoMidService
+      this.displayedColumns = [...this.displayedColumnsConDocente];
+      endpoint = this.esModoConsultaAdmin
+        ? 'historial_estado_sabatico?query=Activo:True&limit=-1'
+        : `sabatico/sabaticos_secretaria/${this.documento}`;
+      service = this.esModoConsultaAdmin
+        ? this.sabaticosCrudService
+        : this.sabaticoMidService
     }
 
     if (!endpoint || !service) {
@@ -340,15 +411,134 @@ export class HistorialSabaticos {
       .subscribe({
         next: (response: any) => {
           const data = response?.Data ?? response ?? [];
-          const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+          const apiSolicitudes = this.filtrarHistorialPorRol(
+            this.mapHistorialResponse(Array.isArray(data) ? data : [])
+          );
           this.historialEstadoSabaticos = apiSolicitudes;
           this.applyFilters();
           this.cargandoHistorialSabaticos = false;
+          if (this.esModoConsultaAdmin && this.isSecretariaAcademica) {
+            this.fetchDocenteInfoForSabaticos(apiSolicitudes);
+          }
         },
         error: (error:any) => {
           this.cargandoHistorialSabaticos = false;
         }
       });
+  }
+
+  private inicializarRol(rolesRaw: unknown): void {
+    const roles = Array.isArray(rolesRaw) ? rolesRaw.map(String) : [];
+    const rolesSoportados: RolSistema[] = ['DOCENTE', 'SECRETARIA_ACADEMICA', 'ADMIN_SGA'];
+    const rolEncontrado = roles.find((rol) => rolesSoportados.includes(rol as RolSistema)) as RolSistema | undefined;
+
+    this.rolReal = roles.includes('ADMIN_SGA')
+      ? 'ADMIN_SGA'
+      : rolEncontrado ?? '';
+    this.rol = this.esModoConsultaAdmin
+      ? this.rolConsulta
+      : (this.rolReal as RolOperativo) || 'DOCENTE';
+  }
+
+  private cargarPermisosPorRol(rol: string): void {
+    if (!rol) {
+      this.permisos = [];
+      return;
+    }
+
+    this.configuracionService.get(`perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:${rol}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response: any) => {
+        this.permisos = response;
+      });
+  }
+
+  onRolConsultaChange(rol: RolOperativo): void {
+    if (!this.esModoConsultaAdmin || this.rolConsulta === rol) {
+      return;
+    }
+
+    this.rolConsulta = rol;
+    this.rol = rol;
+    if (rol !== 'DOCENTE') {
+      this.documentoDocenteConsulta = '';
+    }
+    this.terceroId = 0;
+    this.loadHistorialSabaticos();
+  }
+
+  onDocumentoDocenteConsultaChange(value: string): void {
+    this.documentoDocenteConsulta = value;
+  }
+
+  onBuscarDocenteConsulta(): void {
+    if (!this.canBuscarDocenteConsulta) {
+      return;
+    }
+
+    this.loadTerceroIdConsultaDocente(this.documentoDocenteConsulta.trim());
+  }
+
+  getRolConsultaTranslationKey(rol: RolOperativo): string {
+    const traducciones: Record<RolOperativo, string> = {
+      DOCENTE: 'HISTORIAL_SABATICOS.adminConsulta.roles.docente',
+      SECRETARIA_ACADEMICA: 'HISTORIAL_SABATICOS.adminConsulta.roles.secretariaAcademica',
+    };
+    return traducciones[rol];
+  }
+
+  private loadTerceroIdConsultaDocente(documento: string): void {
+    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
+    this.loaderService.show();
+    this.tercerosService.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loaderService.hide()))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? response ?? [];
+          if (Array.isArray(data) && data.length > 0) {
+            const tercero = data[0]?.TerceroId;
+            this.terceroId = Number(tercero?.Id ?? tercero ?? 0);
+            this.loadHistorialSabaticos();
+            return;
+          }
+
+          this.terceroId = 0;
+          this.historialEstadoSabaticos = [];
+          this.applyFilters();
+        },
+        error: () => {
+          this.terceroId = 0;
+          this.historialEstadoSabaticos = [];
+          this.applyFilters();
+        }
+      });
+  }
+
+  private filtrarHistorialPorRol(historial: HistorialEstadoSabaticos[]): HistorialEstadoSabaticos[] {
+    if (this.esModoConsultaAdmin && this.isSecretariaAcademica) {
+      return historial.filter((item) => {
+        const codigo = item.estadoSabaticoCodigo ?? '';
+        if (this.estadosConsultaSecretariaAcademica.includes(codigo)) {
+          return true;
+        }
+
+        return this.estadosConsultaSecretariaAcademicaVencidos.includes(codigo)
+          && this.isFechaFinVencida(item.fechaFinal);
+      });
+    }
+
+    return historial;
+  }
+
+  private isFechaFinVencida(fechaFinal: string): boolean {
+    const fecha = this.parseLocalDate(fechaFinal);
+    if (!fecha) {
+      return false;
+    }
+
+    const hoy = new Date();
+    const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime();
+    return fecha.getTime() < hoySinHora;
   }
 
   private loadEstadosSabaticos(): void {
@@ -384,6 +574,12 @@ export class HistorialSabaticos {
     return data.map((item) => {
       const fechaInicio =  this.formatApiDate(item.SabaticoId?.FechaInicio ) ?? '';
       const fechaFinal = this.formatApiDate(item.SabaticoId?.FechaFin) ?? '';
+      const terceroId = Number(
+        item.TerceroId?.Id ??
+        item.TerceroId ??
+        item.SabaticoId?.TerceroId?.Id ??
+        item.SabaticoId?.TerceroId
+      );
   
       return {
         id: String(item.SabaticoId?.Id ?? item.Id ?? ''),
@@ -391,8 +587,39 @@ export class HistorialSabaticos {
         fechaFinal: this.formatApiDate(item.SabaticoId?.FechaFin) ?? '',
         estadoSabatico: item.EstadoSabaticoId?.NombreEstado,
         estadoSabaticoCodigo: item.EstadoSabaticoId?.CodigoAbreviacion,
-        docenteNombre: item.Tercero?.NombreCompleto
+        docenteNombre: item.Tercero?.NombreCompleto ?? item.TerceroId?.NombreCompleto ?? '',
+        ...(Number.isFinite(terceroId) && terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
+    });
+  }
+
+  private fetchDocenteInfoForSabaticos(sabaticos: HistorialEstadoSabaticos[]): void {
+    const terceroIds = [...new Set(
+      sabaticos
+        .filter((item) => !item.docenteNombre)
+        .map((item) => item.terceroIdDocente)
+        .filter((id): id is number => Boolean(id && id > 0))
+    )];
+
+    terceroIds.forEach((terceroId) => {
+      this.tercerosService.get(`tercero/${terceroId}`)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response: any) => {
+            const nombre = response?.NombreCompleto ?? '';
+            if (!nombre) {
+              return;
+            }
+
+            this.historialEstadoSabaticos.forEach((item) => {
+              if (item.terceroIdDocente === terceroId) {
+                item.docenteNombre = nombre;
+              }
+            });
+            this.applyFilters();
+          },
+          error: () => {}
+        });
     });
   }
 
@@ -411,6 +638,20 @@ export class HistorialSabaticos {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private parseLocalDate(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    const parsed = new Date(year, month - 1, day);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private matchesDate(value: string, filterValue: string): boolean {

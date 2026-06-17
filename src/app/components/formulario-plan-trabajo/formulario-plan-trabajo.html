@@ -298,6 +298,7 @@
 
             <ng-template #sinArchivo>
 
+              <ng-container *ngIf="CargarSoportesDocente">
                 <input
                   #fileInput
                   type="file"
@@ -324,6 +325,7 @@
                   <mat-icon>delete</mat-icon>
 
                 </button>
+              </ng-container>
 
             </ng-template>
             
@@ -479,6 +481,7 @@
 
             <ng-template #sinArchivo>
 
+              <ng-container *ngIf="CargarSoportesSecretaria">
                 <input
                   #fileInput
                   type="file"
@@ -505,6 +508,7 @@
                   <mat-icon>delete</mat-icon>
 
                 </button>
+              </ng-container>
 
             </ng-template>
             

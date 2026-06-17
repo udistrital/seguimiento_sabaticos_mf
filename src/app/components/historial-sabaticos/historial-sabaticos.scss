@@ -64,6 +64,43 @@
     margin: 0;
   }
 
+  &__admin-consulta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #d6e4f0;
+    border-radius: 0.5rem;
+    background-color: #f7fbff;
+  }
+
+  &__admin-consulta-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1f2933;
+    font-weight: 600;
+  }
+
+  &__admin-consulta-select {
+    width: min(100%, 320px);
+  }
+
+  &__admin-consulta-docente {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  &__admin-consulta-documento {
+    width: min(100%, 280px);
+  }
+
 
   &__info-wrapper {
     display: flex;

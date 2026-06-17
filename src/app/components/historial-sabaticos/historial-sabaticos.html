@@ -11,6 +11,36 @@
   </mat-card-header>
 
   <mat-card-content>
+    <section class="historial-sabaticos__admin-consulta" *ngIf="esModoConsultaAdmin">
+      <div class="historial-sabaticos__admin-consulta-text">
+        <mat-icon color="primary">manage_search</mat-icon>
+        <span>{{ 'HISTORIAL_SABATICOS.adminConsulta.label' | translate }}</span>
+      </div>
+
+      <mat-form-field appearance="outline" class="historial-sabaticos__admin-consulta-select">
+        <mat-label>{{ 'HISTORIAL_SABATICOS.adminConsulta.selectLabel' | translate }}</mat-label>
+        <mat-select [value]="rolConsulta" (selectionChange)="onRolConsultaChange($event.value)">
+          <mat-option *ngFor="let rolOption of rolesConsultaOptions" [value]="rolOption">
+            {{ getRolConsultaTranslationKey(rolOption) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="historial-sabaticos__admin-consulta-docente" *ngIf="isConsultaDocenteAdmin">
+        <mat-form-field appearance="outline" class="historial-sabaticos__admin-consulta-documento">
+          <mat-label>{{ 'HISTORIAL_SABATICOS.adminConsulta.documentoDocente' | translate }}</mat-label>
+          <input matInput type="text" [value]="documentoDocenteConsulta"
+            (input)="onDocumentoDocenteConsultaChange($any($event.target).value)"
+            (keyup.enter)="onBuscarDocenteConsulta()" />
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="button" (click)="onBuscarDocenteConsulta()"
+          [disabled]="!canBuscarDocenteConsulta">
+          <mat-icon>search</mat-icon>
+          {{ 'HISTORIAL_SABATICOS.adminConsulta.buscarDocente' | translate }}
+        </button>
+      </div>
+    </section>
 
     <div *ngIf="!cargandoHistorialSabaticos && historialEstadoSabaticos.length === 0" class="historial-sabaticos__empty">
       <mat-icon>inbox</mat-icon>
@@ -165,6 +195,16 @@
               [routerLink]="['/formulario-plan-trabajo']"
               (click)="onViewPlanTrabajo(solicitud.id)">
               <mat-icon>edit</mat-icon>
+            </button>
+
+            <button
+              class="historial-sabaticos__accion historial-sabaticos__accion--view"
+              mat-icon-button
+              [matTooltip]="'HISTORIAL_SABATICOS.actions.visualizarPlanTrabajo' | translate"
+              *ngIf="canVisualizarPlanTrabajo(solicitud)"
+              [routerLink]="['/formulario-plan-trabajo']"
+              (click)="onViewPlanTrabajo(solicitud.id)">
+              <mat-icon>visibility</mat-icon>
             </button>
 
             <button
