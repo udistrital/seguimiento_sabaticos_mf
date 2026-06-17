@@ -285,10 +285,23 @@ get hasObservacionesCambiaron(): boolean {
 
   get canEnviarRevisionSecretariaEnabled(): boolean {
     const tieneDocumentos = this.documentosSeleccionadosDetalleDocente.length > 0;
-    const todosAprobados = tieneDocumentos && this.documentosSeleccionadosDetalleDocente.every(
-      doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
+
+    const todosAprobados =
+      tieneDocumentos &&
+      this.documentosSeleccionadosDetalleDocente.every(
+        doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
+      );
+
+    const tieneDocumentoSecretariaCargado =
+      this.documentosSeleccionadosDetalleSecretaria.some(
+        doc => doc.archivo || doc.documentoId || doc.remoteUrl
+      );
+
+    return (
+      this.canEnviarRevisionSecretaria &&
+      todosAprobados &&
+      tieneDocumentoSecretariaCargado
     );
-    return this.canEnviarRevisionSecretaria && todosAprobados;
   }
 
   get isEstadoCarguePlanTrabajo(): boolean {
@@ -1017,10 +1030,10 @@ async onEnviarRevisionSecretaria(): Promise<void> {
   }
 
   const title = this.translate.instant(
-    'HISTORIAL_SABATICOS.edit.sendConfirmTitle'
+    'HISTORIAL_SABATICOS.edit.enviar_socializacion'
   );
   const text = this.translate.instant(
-    'HISTORIAL_SABATICOS.edit.sendConfirmText'
+    'HISTORIAL_SABATICOS.edit.enviar_socializacion_text'
   );
 
   const result = await this.popUpManager.showConfirmAlert(

@@ -82,6 +82,7 @@
       "sendConfirmText": "Are you sure you want to send this work plan for review?",
       "enviar_revision": "Send for review",
       "enviar_socializacion": "Send to socialization",
+      "enviar_socializacion_text": "Are you sure you want to send this work plan for socialization?",
       "cargar_pdf": "Upload PDF",
       "save": "Save changes",
       "subsanar": "Request corrections",
