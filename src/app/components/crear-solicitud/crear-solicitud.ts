@@ -386,7 +386,9 @@ export class CrearSolicitud {
       justificacion: this.toNullable(justificacion),
       respuestaSolicitud: null,
       sabatico,
-      documentos: this.documentosSeleccionadosDetalle.map((doc) => ({ label: doc.label })),
+      documentos: this.documentosSeleccionadosDetalle
+        .filter((doc) => !!doc.archivo && this.esArchivoPdf(doc.archivo))
+        .map((doc) => ({ label: doc.label })),
     };
   }
 
