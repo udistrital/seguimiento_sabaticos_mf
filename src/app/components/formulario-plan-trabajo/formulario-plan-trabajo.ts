@@ -17,7 +17,7 @@ import { PopUpManager } from '../../../managers/popUpManager';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { LoaderService } from '../../services/loader.service';
-import { firstValueFrom, switchMap } from 'rxjs';
+import { firstValueFrom, Observable, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
 import {
@@ -728,64 +728,46 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
     }
   }
 
-  onGuardarPlanTrabajo(executeSubscribe = true) {
-    if (!this.canDisabledGuardar) {
-      return;
-    }
+ 
+onGuardarPlanTrabajo(executeSubscribe = true): Observable<any> {
 
-    const endpoint = `sabatico/plan_trabajo`;
+  const endpoint = `sabatico/plan_trabajo`;
 
-    const data = {
-      SabaticoId: Number(this.sabaticoId),
-      Justificacion:
-        this.form.get(
-          'descripcion_plan_trabajo'
-        )?.value,
-    };
+  const data = {
+    SabaticoId: Number(this.sabaticoId),
+    Justificacion: this.form.get('descripcion_plan_trabajo')?.value,
+  };
 
-    const request$ = this.sabaticosMidService
-      .post(endpoint, data)
+  const request$ = this.sabaticosMidService
+    .post(endpoint, data)
+    .pipe(
+      switchMap(async (response: any) => {
+
+        if (response.Status === 200) {
+          await this.onGuardarDocumentos();
+          this.loadHistorialEstadoSabatico(this.sabaticoId);
+          this.loadPlanDeTrabajo(this.sabaticoId);
+        }
+
+        return response;
+      })
+    );
+
+  if (executeSubscribe) {
+    this.loaderService.show();
+
+    request$
       .pipe(
-        switchMap(async (response: any) => {
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: () => {},
+        error: () => {}
+      });
+  }
 
-          if (response.Status === 200) {
-
-            // espera documentos
-            await this.onGuardarDocumentos();
-
-            // recarga info
-            this.loadHistorialEstadoSabatico(
-              this.sabaticoId
-            );
-
-            this.loadPlanDeTrabajo(
-              this.sabaticoId
-            );
-          }
-
-          return response;
-        })
-      );
-
-    // ejecución normal (botón guardar)
-    if (executeSubscribe) {
-      this.loaderService.show();
-
-      request$
-        .pipe(
-          takeUntilDestroyed(this.destroyRef),
-          finalize(() => this.loaderService.hide())
-        )
-        .subscribe({
-          next: () => {
-          },
-          error: (error) => {
-          }
-        });
-    }
-
-    // retorna observable reutilizable
-    return request$;
+  return request$; // 🔥 SIEMPRE retorna observable
 }
 
 onGuardarObservacionesSecretaria(): void {
@@ -924,8 +906,6 @@ async onEnviarRevisionDocente(): Promise<void> {
             );
           }
         },
-        error: (error) => {
-        }
       });
   } else {
     // Sin cambios, ir directo al cambio de estado
@@ -951,16 +931,14 @@ async onEnviarRevisionDocente(): Promise<void> {
 async onEnviarRevisionSecretaria(): Promise<void> {
 
   const title = this.translate.instant(
-    'HISTORIAL_SABATICOS.edit.sendConfirmTitle'
-  );
-  const text = this.translate.instant(
-    'HISTORIAL_SABATICOS.edit.sendConfirmText'
+    'HISTORIAL_SABATICOS.edit.enviar_socializacion'
   );
 
-  const result = await this.popUpManager.showConfirmAlert(
-    text,
-    title
+  const text = this.translate.instant(
+    'HISTORIAL_SABATICOS.edit.enviar_socializacion_text'
   );
+
+  const result = await this.popUpManager.showConfirmAlert(text, title);
 
   if (!result?.isConfirmed) {
     return;
@@ -977,55 +955,54 @@ async onEnviarRevisionSecretaria(): Promise<void> {
 
   this.loaderService.show();
 
-  // Si hay cambios (descripción o documentos nuevos), guardar primero
-  if (this.canDisabledGuardar) {
-    this.onGuardarPlanTrabajo(false)
-      ?.pipe(
-        switchMap(() =>
-          this.sabaticosMidService.post(
-            endpoint,
-            data
-          )
-        ),
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loaderService.hide())
+  try {
+
+    // 1. Guardar plan de trabajo si hay cambios
+    if (this.canDisabledGuardar) {
+      await firstValueFrom(this.onGuardarPlanTrabajo(false));
+    }
+
+    // 2. 🔥 Guardar observaciones (FIX REAL al 400)
+    if (this.isSecretariaAcademica && this.hasObservacionesCambiaron) {
+      console.log(this.sabaticoData)
+      const observacionesPayload = {
+        Id: this.sabaticoData?.Id,   // 🔥 IMPORTANTE: solo lo necesario
+        Observaciones: this.form.get('observacionesSecretaria')?.value || '',
+        Activo: true,
+        
+        
+      };
+
+      await firstValueFrom(
+        this.sabaticosCrudService.put('sabatico', observacionesPayload)
+      );
+    }
+
+    // 3. Cambio de estado a socialización
+    const response: any = await firstValueFrom(
+      this.sabaticosMidService.post(endpoint, data)
+    );
+
+    if (response?.Status === 200) {
+      this.popUpManager.showSuccessAlert(
+        this.translate.instant(
+          'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
+        )
+      );
+      this.router.navigate(['']);
+    }
+
+  } catch (error) {
+    console.error('Error enviando a socialización:', error);
+
+    this.popUpManager.showErrorAlert(
+      this.translate.instant(
+        'HISTORIAL_SABATICOS.edit.errorEnviarRevision'
       )
-      .subscribe({
-        next: (response: any) => {
-          if (response.Status === 200) {
-            this.popUpManager.showSuccessAlert(
-              this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
-              )
-            );
-            this.router.navigate(['']);
-          }
-        },
-        error: (error) => {
-        }
-      });
-  } else {
-    // Sin cambios, ir directo al cambio de estado
-    this.sabaticosMidService.post(endpoint, data)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loaderService.hide())
-      )
-      .subscribe({
-        next: (response: any) => {
-          if (response.Status === 200) {
-            this.popUpManager.showSuccessAlert(
-              this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
-              )
-              
-            );
-            this.router.navigate(['']);
-          }
-        },
-        error: (error) => {
-        }
-      });
+    );
+
+  } finally {
+    this.loaderService.hide();
   }
 }
 
