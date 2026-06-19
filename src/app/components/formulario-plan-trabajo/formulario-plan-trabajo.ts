@@ -17,7 +17,7 @@ import { PopUpManager } from '../../../managers/popUpManager';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { LoaderService } from '../../services/loader.service';
-import { firstValueFrom, switchMap } from 'rxjs';
+import { firstValueFrom, Observable, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
 import {
@@ -283,26 +283,28 @@ get hasObservacionesCambiaron(): boolean {
     return descripcionModificada || tieneDocumentoNuevo || this.hasObservacionesSecretaria;
   }
 
-  get canEnviarRevisionSecretariaEnabled(): boolean {
-    const tieneDocumentos = this.documentosSeleccionadosDetalleDocente.length > 0;
+get canEnviarRevisionSecretariaEnabled(): boolean {
+  // documentos docente
+  const documentosDocente = this.documentosSeleccionadosDetalleDocente;
 
-    const todosAprobados =
-      tieneDocumentos &&
-      this.documentosSeleccionadosDetalleDocente.every(
-        doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
-      );
-
-    const tieneDocumentoSecretariaCargado =
-      this.documentosSeleccionadosDetalleSecretaria.some(
-        doc => doc.archivo || doc.documentoId || doc.remoteUrl
-      );
-
-    return (
-      this.canEnviarRevisionSecretaria &&
-      todosAprobados &&
-      tieneDocumentoSecretariaCargado
+  const todosAprobados =
+    documentosDocente.length > 0 &&
+    documentosDocente.every(
+      doc => doc.estadoSoporte === EstadoSoporteNombre.APROBADO
     );
-  }
+
+  // documentos secretaria (esto es lo que te falta bien validado)
+  const tieneDocumentoSecretaria =
+    this.documentosSeleccionadosDetalleSecretaria.some(
+      doc => doc.archivo || doc.documentoId || doc.remoteUrl
+    );
+
+  return (
+    this.canEnviarRevisionSecretaria &&
+    todosAprobados &&
+    tieneDocumentoSecretaria
+  );
+}
 
   get isEstadoCarguePlanTrabajo(): boolean {
     const estado = this.historialSabaticoData?.EstadoSabaticoId?.CodigoAbreviacion;
@@ -793,69 +795,47 @@ if(this.rol === Role.SECRETARIA_ACADEMICA){
     }
   }
 
-  onGuardarPlanTrabajo(executeSubscribe = true) {
-    if (this.isReadOnly) {
-      return;
-    }
+onGuardarPlanTrabajo(executeSubscribe = true): Observable<any> {
 
-    if (!this.canDisabledGuardar) {
-      return;
-    }
+const endpoint = `sabatico/plan_trabajo`;
 
-    const endpoint = `sabatico/plan_trabajo`;
+const data = {
+SabaticoId: Number(this.sabaticoId),
+Justificacion: this.form.get('descripcion_plan_trabajo')?.value,
+};
 
-    const data = {
-      SabaticoId: Number(this.sabaticoId),
-      Justificacion:
-        this.form.get(
-          'descripcion_plan_trabajo'
-        )?.value,
-    };
+const request$ = this.sabaticosMidService
+.post(endpoint, data)
+.pipe(
+switchMap(async (response: any) => {
 
-    const request$ = this.sabaticosMidService
-      .post(endpoint, data)
-      .pipe(
-        switchMap(async (response: any) => {
-
-          if (response.Status === 200) {
-
-            // espera documentos
-            await this.onGuardarDocumentos();
-
-            // recarga info
-            this.loadHistorialEstadoSabatico(
-              this.sabaticoId
-            );
-
-            this.loadPlanDeTrabajo(
-              this.sabaticoId
-            );
-          }
-
-          return response;
-        })
-      );
-
-    // ejecución normal (botón guardar)
-    if (executeSubscribe) {
-      this.loaderService.show();
-
-      request$
-        .pipe(
-          takeUntilDestroyed(this.destroyRef),
-          finalize(() => this.loaderService.hide())
-        )
-        .subscribe({
-          next: () => {
-          },
-          error: (error) => {
-          }
-        });
-    }
-
-    // retorna observable reutilizable
-    return request$;
+if (response.Status === 200) {
+await this.onGuardarDocumentos();
+this.loadHistorialEstadoSabatico(this.sabaticoId);
+this.loadPlanDeTrabajo(this.sabaticoId);
 }
+
+return response;
+})
+);
+
+if (executeSubscribe) {
+this.loaderService.show();
+
+request$
+.pipe(
+takeUntilDestroyed(this.destroyRef),
+finalize(() => this.loaderService.hide())
+)
+.subscribe({
+next: () => {},
+error: () => {}
+});
+}
+
+return request$; // 🔥 SIEMPRE retorna observable
+}
+
 
 onGuardarObservacionesSecretaria(): void {
   if (this.isReadOnly) {
@@ -1024,14 +1004,25 @@ async onEnviarRevisionDocente(): Promise<void> {
   }
 }
 
+private formatToPostgresTimestamp(date: any): string | null {
+  if (!date) return null;
+
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+
 async onEnviarRevisionSecretaria(): Promise<void> {
-  if (this.isReadOnly) {
-    return;
-  }
 
   const title = this.translate.instant(
     'HISTORIAL_SABATICOS.edit.enviar_socializacion'
   );
+
   const text = this.translate.instant(
     'HISTORIAL_SABATICOS.edit.enviar_socializacion_text'
   );
@@ -1056,55 +1047,87 @@ async onEnviarRevisionSecretaria(): Promise<void> {
 
   this.loaderService.show();
 
-  // Si hay cambios (descripción o documentos nuevos), guardar primero
-  if (this.canDisabledGuardar) {
-    this.onGuardarPlanTrabajo(false)
-      ?.pipe(
-        switchMap(() =>
-          this.sabaticosMidService.post(
-            endpoint,
-            data
-          )
+  try {
+
+    // 1. Guardar documentos SIEMPRE
+    await this.onGuardarDocumentos();
+
+    // 2. Guardar observaciones si cambiaron
+    if (
+      this.isSecretariaAcademica &&
+      this.hasObservacionesCambiaron
+    ) {
+
+      const observacionesPayload = {
+        Id: this.sabaticoData?.Id,
+        Observaciones:
+          this.form.get('observacionesSecretaria')?.value || '',
+        Activo: true,
+
+        FechaInicio: this.formatToPostgresTimestamp(
+          this.sabaticoData?.FechaInicio
         ),
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loaderService.hide())
+        FechaFin: this.formatToPostgresTimestamp(
+          this.sabaticoData?.FechaFin
+        ),
+        FechaCreacion: this.formatToPostgresTimestamp(
+          this.sabaticoData?.FechaCreacion
+        ),
+        FechaModificacion: this.formatToPostgresTimestamp(
+          new Date()
+        ),
+
+        TerceroId: this.sabaticoData?.TerceroId
+      };
+
+      await firstValueFrom(
+        this.sabaticosCrudService.put(
+          'sabatico',
+          observacionesPayload
+        )
+      );
+    }
+
+    // 3. Cambiar estado
+    const response: any = await firstValueFrom(
+      this.sabaticosMidService.post(
+        endpoint,
+        data
       )
-      .subscribe({
-        next: (response: any) => {
-          if (response.Status === 200) {
-            this.popUpManager.showSuccessAlert(
-              this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
-              )
-            );
-            this.router.navigate(['']);
-          }
-        },
-        error: (error) => {
-        }
-      });
-  } else {
-    // Sin cambios, ir directo al cambio de estado
-    this.sabaticosMidService.post(endpoint, data)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loaderService.hide())
+    );
+
+    if (response?.Status === 200) {
+
+      this.popUpManager.showSuccessAlert(
+        this.translate.instant(
+          'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
+        )
+      );
+
+      this.loadHistorialEstadoSabatico(
+        this.sabaticoId
+      );
+
+      this.router.navigate(['']);
+    }
+
+  } catch (error) {
+
+    console.error(
+      'Error enviando a socialización:',
+      error
+    );
+
+    this.popUpManager.showErrorAlert(
+      this.translate.instant(
+        'HISTORIAL_SABATICOS.edit.errorEnviarRevision'
       )
-      .subscribe({
-        next: (response: any) => {
-          if (response.Status === 200) {
-            this.popUpManager.showSuccessAlert(
-              this.translate.instant(
-                'HISTORIAL_SABATICOS.edit.messageEnviarRevision'
-              )
-              
-            );
-            this.router.navigate(['']);
-          }
-        },
-        error: (error) => {
-        }
-      });
+    );
+
+  } finally {
+
+    this.loaderService.hide();
+
   }
 }
 
